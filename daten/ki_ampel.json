@@ -1,0 +1,28 @@
+{
+  "erstellt": "2026-11-25T22:35:51+01:00",
+  "gueltig_bis": "2026-11-26T10:00:00+01:00",
+  "long_btc": "GELB",
+  "fallend_biti": "GRUEN",
+  "sperrzeiten": [],
+  "prognose_24h": "seitwaerts",
+  "begruendung": "Zoll-Schock, Zinserhöhung im Dez. fast sicher, 6 Tage ETF-Abflüsse: Druck auf Bitcoin. Aber extreme Angst (Index 8) ist oft nahe am Boden. Kaufen nur mit halbem Risiko. Morgen US-Feiertag.",
+  "lage": {
+    "btc": 60300,
+    "trend_tag": "fallend, 16 % unter SMA30, zweiter Tag unter dem 200-Wochen-Schnitt",
+    "funding": "unbekannt",
+    "etf_fluesse": "-570 Mio $ am 23.11., 6 Tage Abfluss in Folge, November ca. -4,9 Mrd $ (Rekord)",
+    "nasdaq": "Tech schwach (Zweifel an KI-Bewertungen)",
+    "dollar": "unbekannt",
+    "fear_greed": 8,
+    "wichtigste_news": "Bericht: Trump plant Zölle auf 2,4 Bio. $ Importe aus 16 Ländern; Markt erwartet Fed-Zinserhöhung am 09.12. (~96 %); BTC-Tief heute ca. 58.900; Tief 22./23.11. ca. 55.100",
+    "termine": "Heute 14:30 PCE + BIP (vorbei), 20:00 Beige Book (vorbei). Do 26.11. Thanksgiving: US-Börse zu, keine Daten. Fr 27.11. Börse nur bis 19:00 Wien. FOMC 09.12."
+  },
+  "quellen": [
+    "https://phemex.com/news/article/bitcoin-crashes-below-60k-as-24-trillion-tariff-shock-ignites-rate-hike-panic-104755",
+    "https://www.forbes.com/sites/murtuza-merchant/2026/11/25/bitcoin-etf-outflows-near-5-billion-as-tariffs-hit-what-to-do-now/",
+    "https://www.fxstreet.com/cryptocurrencies/news/risk-appetite-muted-bitcoin-falls-below-60-000-202611251252",
+    "https://que.com/bitcoin-slips-below-60000-as-etf-outflows-hit-a-sixth-straight-day-and-november-is-now-the-worst-month-ever-for-the-funds/",
+    "https://www.simianx.ai/stories/us-economic-calendar-this-month-in-your-time-zone",
+    "https://www.financecalendar.com/event/us-personal-income-and-outlays-pce-november-2026/"
+  ]
+}

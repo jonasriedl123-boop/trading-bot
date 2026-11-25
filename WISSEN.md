@@ -105,8 +105,13 @@ _(Claude ergänzt diese Tabelle jeden Sonntag.)_
 - Diese Datei aktuell halten: Abschnitt 6 (Lektionen) und 9 (Lage).
 
 ## 9. Lage (Stand 25.11.2026, wird jeden Sonntag aktualisiert)
-- Bitcoin ca. **60.000 $**, Tagestrend **fallend**: 16 % unter SMA30 (~71.200), RSI(Tag) ~25 (stark überverkauft).
+- Bitcoin ca. **60.000 $**, Tagestrend **fallend**: 16 % unter SMA30 (~71.200), RSI(Tag) ~25 (stark überverkauft),
+  unter dem 200-Wochen-Schnitt. Tief am 22./23.11. ca. **55.100** (tiefster Stand seit Sept. 2024).
 - 4h: unter EMA20/SMA40, ATR ca. 2,2 %.
+- **Warum es fällt:** November = Rekord-Abflüsse aus US-Bitcoin-ETFs (ca. −4,9 Mrd $, 6 Tage in Folge), der Markt erwartet eine
+  **Zinserhöhung der Fed am 09.12.2026**, Tech-Aktien schwach (Zweifel an KI-Bewertungen), am 25.11. Bericht über neue
+  US-Zölle (2,4 Bio. $ Importe) → Bitcoin kurz unter 59.000. Angst-Index (Fear & Greed) bei 8 = extreme Angst.
+- **Termine:** Do 26.11. Thanksgiving (US-Börse zu, BITI nicht handelbar), Fr 27.11. Börse nur bis 19:00 Wien, FOMC 09.12. (20:00 Wien).
 - L2 wartet auf einen Rutsch unter ca. **55.100** und eine grüne Umkehr. S1 wartet auf einen Rücklauf hoch zur EMA20 (4h).
 - Seit Jahresbeginn ist Bitcoin über 20 % gefallen (BITI dafür gestiegen).
 
