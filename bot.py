@@ -40,8 +40,8 @@ TRADE_SPALTEN = ["id", "setup", "einstieg_zeit", "einstieg", "stop", "ziel", "me
 
 # ---------------- Alpaca ----------------
 def api(methode, url, body=None, ok404=False):
-    kopf = {"APCA-API-KEY-ID": os.environ["APCA_API_KEY_ID"],
-            "APCA-API-SECRET-KEY": os.environ["APCA_API_SECRET_KEY"], "accept": "application/json"}
+    kopf = {"APCA-API-KEY-ID": os.environ["APCA_API_KEY_ID"].strip(),
+            "APCA-API-SECRET-KEY": os.environ["APCA_API_SECRET_KEY"].strip(), "accept": "application/json"}
     daten = None
     if body is not None:
         daten = json.dumps(body).encode()
