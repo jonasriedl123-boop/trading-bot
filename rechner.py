@@ -4,10 +4,36 @@ Reine Funktionen ohne Internet - dadurch testbar.
 """
 import csv
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+try:
+    from zoneinfo import ZoneInfo
+    WIEN = ZoneInfo("Europe/Vienna")
+except Exception:  # falls die Zeitzonen-Daten fehlen
+    WIEN = timezone(timedelta(hours=1))
+
 HIER = Path(__file__).resolve().parent
+
+
+def zeit(s):
+    """Text oder datetime -> datetime in UTC. Zeiten ohne Zeitzone gelten als Wiener Zeit."""
+    d = s if isinstance(s, datetime) else datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+    if d.tzinfo is None:
+        d = d.replace(tzinfo=WIEN)
+    return d.astimezone(timezone.utc)
+
+
+def stop_ok(dist, preis, a, p):
+    """Prueft den Stop-Abstand (in BTC-Preis). Rueckgabe (ok, grund)."""
+    for ok, txt in [(dist > 0, "Preis schon hinter dem Stop"),
+                    (dist >= p["stop_min_atr"] * a, "Stop zu eng"),
+                    (dist <= p["stop_max_atr"] * a, "Stop zu weit"),
+                    (dist / preis >= p["stop_min_pct"], f"Stop < {p['stop_min_pct']:.0%}"),
+                    (dist / preis <= p["stop_max_pct"], f"Stop > {p['stop_max_pct']:.0%}")]:
+        if not ok:
+            return False, txt
+    return True, ""
 
 # Harte Grenzen: gelten immer, egal was in parameter.json steht. Nur Jonas aendert die.
 HART = {
@@ -26,6 +52,8 @@ def lade_parameter(pfad=None):
     p = json.loads(Path(pfad or HIER / "parameter.json").read_text(encoding="utf-8"))
     p["L1_risiko"] = min(float(p["L1_risiko"]), HART["risiko_max"])
     p["L2_risiko"] = min(float(p["L2_risiko"]), HART["risiko_max"])
+    p["S1_risiko"] = min(float(p.get("S1_risiko", 0.02)), HART["risiko_max"])
+    p.setdefault("S1_rsi_min", 55)
     p["ziel_r"] = min(max(float(p["ziel_r"]), HART["ziel_r_min"]), HART["ziel_r_max"])
     p["max_cash_anteil"] = min(float(p.get("max_cash_anteil", 0.95)), HART["max_cash_anteil"])
     return p
@@ -133,23 +161,34 @@ def analyse(tage, h4, now, p, equity, cash, preis=None, trade=None):
 
     # ---- offene Position verwalten ----
     if trade:
-        risiko = trade["einstieg"] - trade["stop"]
+        # Werte immer in Bitcoin-Preisen. richtung "short" = Wette auf fallendes BTC (ueber BITI).
+        kurz = trade.get("richtung") == "short"
+        e, s, z = trade["einstieg"], trade["stop"], trade["ziel"]
+        risiko = abs(e - s)
         seit = [k for k in alle4h if k["t"] + timedelta(hours=4) > trade["zeit"]]
         fertig = [k for k in seit if k["t"] + timedelta(hours=4) <= now and k["t"] >= trade["zeit"] - timedelta(hours=4)]
         hoch = max([k["h"] for k in seit] + [preis])
         tief = min([k["l"] for k in seit] + [preis])
-        r["mfe_r"] = round((hoch - trade["einstieg"]) / risiko, 2)
-        r["mae_r"] = round((tief - trade["einstieg"]) / risiko, 2)
-        r["jetzt_r"] = round((preis - trade["einstieg"]) / risiko, 2)
-        r["ziel_beruehrt"] = hoch >= trade["ziel"]
-        r["text"].append(f"Position {trade['setup']}: Einstieg {trade['einstieg']:,.0f}, Stop {trade['stop']:,.0f}, "
-                         f"Ziel {trade['ziel']:,.0f} | jetzt {r['jetzt_r']:+.2f}R, MFE {r['mfe_r']:+.2f}R, "
+        if kurz:
+            r["mfe_r"] = round((e - tief) / risiko, 2)
+            r["mae_r"] = round((e - hoch) / risiko, 2)
+            r["jetzt_r"] = round((e - preis) / risiko, 2)
+            r["ziel_beruehrt"] = tief <= z
+            ziel_da, stop_da = preis <= z, preis >= s
+        else:
+            r["mfe_r"] = round((hoch - e) / risiko, 2)
+            r["mae_r"] = round((tief - e) / risiko, 2)
+            r["jetzt_r"] = round((preis - e) / risiko, 2)
+            r["ziel_beruehrt"] = hoch >= z
+            ziel_da, stop_da = preis >= z, preis <= s
+        r["text"].append(f"Position {trade['setup']} ({'faellt' if kurz else 'steigt'}): BTC-Einstieg {e:,.0f}, "
+                         f"Stop {s:,.0f}, Ziel {z:,.0f} | jetzt {r['jetzt_r']:+.2f}R, MFE {r['mfe_r']:+.2f}R, "
                          f"MAE {r['mae_r']:+.2f}R, Kerzen seit Einstieg {len(fertig)}")
-        if preis >= trade["ziel"]:
+        if ziel_da:
             r["aktion"] = "VERKAUFEN_ZIEL"
         elif len(fertig) >= int(p["zeitstop_kerzen"]):
             r["aktion"] = "VERKAUFEN_ZEIT"
-        elif preis <= trade["stop"]:
+        elif stop_da:
             r["aktion"] = "PRUEFEN_STOP"
         else:
             r["aktion"] = "HALTEN"
@@ -186,6 +225,32 @@ def analyse(tage, h4, now, p, equity, cash, preis=None, trade=None):
             fehlt = [n for n, ok in [("ueberverkauft", gedehnt), (f"Sweep unter {ref_tief:,.0f}", sweep),
                                      ("gruen zurueck ueber Tief", zurueck)] if not ok]
             r["gruende"].append("L2 fehlt: " + ", ".join(fehlt))
+
+    # S1: Bitcoin faellt -> BITI kaufen (steigt, wenn BTC faellt). Spiegelbild von L1.
+    if kandidat is None and p.get("S1_aktiv", False):
+        if regime != "AB":
+            r["gruende"].append(f"S1: Trend {regime}")
+        else:
+            t1 = letzte["c"] < sma40 and ema20[-1] < sma40
+            pull = max(k["h"] for k in k4[-3:]) >= ema20[-1] - p["L1_ema_toleranz_atr"] * a
+            rsi_ok = max(x for x in rsi4[-3:] if x is not None) > p["S1_rsi_min"]
+            trig = (not gruen) and letzte["c"] < vor["l"]
+            if t1 and pull and rsi_ok and trig:
+                stop = max(k["h"] for k in k4[-6:]) + p["stop_puffer_atr"] * a
+                dist = stop - preis
+                ok, txt = stop_ok(dist, preis, a, p)
+                if not ok:
+                    r["gruende"].append(f"S1-Signal, aber {txt}")
+                    return r
+                r.update(aktion="KAUFEN", setup="S1", richtung="short", stop=round(stop),
+                         dist_pct=dist / preis, risiko_anteil=p["S1_risiko"],
+                         ziel_vorlaeufig=round(preis - p["ziel_r"] * dist))
+                r["text"].append(f"SIGNAL S1 (BTC faellt -> BITI kaufen): BTC ~{preis:,.0f}, "
+                                 f"BTC-Stop {stop:,.0f} ({dist / preis:.2%})")
+                return r
+            fehlt = [n for n, ok in [("4h-Abwaertstrend", t1), ("Ruecklauf hoch zur EMA20", pull),
+                                     (f"RSI>{p['S1_rsi_min']}", rsi_ok), ("Ausloeser rote Kerze", trig)] if not ok]
+            r["gruende"].append("S1 fehlt: " + ", ".join(fehlt))
 
     if kandidat is None:
         return r

@@ -11,6 +11,7 @@
 | Datum | Was | alt → neu | Grund |
 |---|---|---|---|
 | 25.11.2026 | Start (v1) | – | Bot zieht vom Laptop auf GitHub um |
+| 25.11.2026 | v2: Setup S1 (BITI), KI-Ampel, Experiment, Prognosen | – | Jonas will auch auf fallende Kurse setzen und messen, ob sich KI lohnt. **Experiment startet hier.** |
 
 ## Lektionen
 _(Claude trägt jeden Sonntag ein, was die Trades gezeigt haben)_
