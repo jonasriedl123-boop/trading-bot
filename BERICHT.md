@@ -1,6 +1,6 @@
 # Experiment: Lohnt sich Traden mit KI?
 
-Stand: 25.11.2026 22:32 · Tag 1 · Start 25.11.2026 · Endauswertung ca. 2027-02-23
+Stand: 25.11.2026 22:37 · Tag 1 · Start 25.11.2026 · Endauswertung ca. 2027-02-23
 
 ## Urteil
 ⏳ **Noch kein Urteil.** 0/30 Trades, Tag 1/56. Mit so wenig Trades kann alles noch Zufall sein.
@@ -28,7 +28,9 @@ Trades: **0** · Treffer 0% · Summe +0.00R · Gesperrte Signale (KI): 0 (0 lauf
 ## Jetzt
 - Bot: aktiv
 - Position: keine
-- KI-Ampel: keine gültige Ampel → Bot handelt nur nach Regeln (Claude-Lauf fehlt)
+- KI-Ampel: Bitcoin steigt: **GELB** · Bitcoin fällt: **GRUEN** · gültig bis 26.11. 10:00
+
+> Zoll-Schock, Zinserhöhung im Dez. fast sicher, 6 Tage ETF-Abflüsse: Druck auf Bitcoin. Aber extreme Angst (Index 8) ist oft nahe am Boden. Kaufen nur mit halbem Risiko. Morgen US-Feiertag.
 
 ## Details
 ```
