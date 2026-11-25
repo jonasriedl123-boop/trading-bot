@@ -239,6 +239,8 @@ def trade_abschliessen(z, ausstieg, grund, now, p, extra=""):
             f"MAE {t.get('mae_r', '?')}R · MFE {t.get('mfe_r', '?')}R · Trend {t.get('regime', '?')} {notiz}\n\n"
             f"Analyse: kommt am Sonntag in ANALYSEN.md (#{nr})\n")
     z["position"] = None
+    if rn <= 0:  # nach einem Verlust nicht gleich wieder rein (Abkuehlzeit)
+        z["abkuehlen_bis"] = (now + timedelta(hours=float(p.get("nach_verlust_pause_std", 12)))).isoformat()
     with TRADES.open(encoding="utf-8") as d:
         zeilen = [x for x in csv.DictReader(d) if x.get("r_netto")]
     if rechner.verlustserie(zeilen) >= rechner.HART["verlustserie_pause"]:
@@ -441,6 +443,8 @@ def handeln(z, t, a, p, now, preis, regime, grund, equity, cash, hat, pos_btc, o
         sperre = "Bot ausgeschaltet (BOT_AKTIV.txt)"
     elif z.get("pause_bis") and zeit(z["pause_bis"]) > now:
         sperre = f"Pause bis {zeit(z['pause_bis']).astimezone(WIEN):%d.%m. %H:%M} (Verlustserie)"
+    elif z.get("abkuehlen_bis") and zeit(z["abkuehlen_bis"]) > now:
+        sperre = f"Abkuehlen nach Verlust bis {zeit(z['abkuehlen_bis']).astimezone(WIEN):%d.%m. %H:%M}"
     elif equity < rechner.HART["notbremse_equity"]:
         sperre = f"NOTBREMSE: Konto {equity:.0f} $ < {rechner.HART['notbremse_equity']:.0f} $"
     elif z["einstiege"]["anzahl"] >= rechner.HART["max_einstiege_tag"]:

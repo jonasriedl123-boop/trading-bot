@@ -83,6 +83,11 @@ _(Claude ergänzt diese Tabelle jeden Sonntag.)_
 - `prognose_24h`: `steigt` (> +1 %), `faellt` (< −1 %) oder `seitwaerts`. Wird nach 24 Std. automatisch geprüft
   (`daten/prognosen.csv`). Ehrlich schätzen, nicht raten: lieber `seitwaerts`, wenn nichts klar ist.
 
+**Nur frische Infos:** News, ETF-Flüsse, Funding, Termine nur aus den **letzten 48 Std.** (Datum jeder Quelle prüfen).
+Alte Studien, Rückblicke oder Statistiken älter als 12 Monate sind **kein** Grund für ROT/GELB. Im Zweifel: Quelle weglassen.
+**Gedächtnis:** Vor jeder Ampel `daten/trades.csv`, `daten/schatten.csv` und `daten/prognosen.csv` der letzten 7 Tage lesen.
+Gleiche Lage wie bei einem frischen Verlust → vorsichtiger (GELB). Die gleichen Fehler nicht zweimal machen.
+
 **Regeln für die Ampel (wichtig für ein faires Experiment):**
 - **Standard ist GRÜN.** ROT nur mit einem **konkreten, nachprüfbaren Grund** (News/Daten mit Quelle).
 - `long_btc` **ROT** z. B. bei: Hack/Pleite einer großen Börse, Verbot/harter Regulierung, große ETF-Abflüsse

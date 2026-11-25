@@ -21,6 +21,7 @@
   "stop_limit_abstand": 0.005,
   "ziel_r": 2.0,
   "zeitstop_kerzen": 12,
+  "nach_verlust_pause_std": 12,
   "gebuehr_pro_seite": 0.0025,
   "max_cash_anteil": 0.95
 }

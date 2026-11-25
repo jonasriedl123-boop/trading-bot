@@ -193,6 +193,19 @@ def _pf(rr):
     return (g / v) if v else (99.0 if g else 0.0)
 
 
+ZIEL_FAKTOR, ZIEL_TRADES = 2.0, 30  # Jonas' Ziel: Geld verdoppeln in 30 Trades
+
+
+def ziel_zeile(equity, start_g, n):
+    ziel = start_g * ZIEL_FAKTOR
+    weg = (equity - start_g) / (ziel - start_g)
+    rest = max(ZIEL_TRADES - n, 1)
+    noetig = (ziel / equity) ** (1 / rest) - 1 if equity < ziel else 0.0
+    return (f"🎯 **Ziel von Jonas:** {start_g:,.0f} → {ziel:,.0f} $ in {ZIEL_TRADES} Trades · geschafft: {weg:.0%} · "
+            f"nötig: ca. {noetig:+.1%} pro Trade in den nächsten {rest} Trades "
+            f"(= ca. {noetig / 0.02:.1f}R; gute Trader schaffen eher 0,2–0,5R im Schnitt)")
+
+
 def bericht(now, equity, btc, exp, z, ampel, aktiv):
     trades = [t for t in _lies(TRADES) if t.get("r_netto")]
     sch = _lies(SCHATTEN)
@@ -276,6 +289,8 @@ def bericht(now, equity, btc, exp, z, ampel, aktiv):
         f"| Wert | {equity:,.2f} $ | {bh_wert:,.2f} $ | {start_g:,.2f} $ |",
         f"| Ergebnis | {bot_ret:+.1%} | {bh_ret:+.1%} | ±0 % |",
         f"| Größter Rückgang | {dd_bot:.1%} | {dd_bh:.1%} | 0 % |",
+        "",
+        ziel_zeile(equity, start_g, n),
         "",
         f"Trades: **{n}** · Treffer {treffer:.0%} · Summe {sum(rr):+.2f}R · Gesperrte Signale (KI): {len(ki_sch)} "
         f"({offen_sch} laufen noch)",
