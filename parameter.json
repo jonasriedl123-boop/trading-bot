@@ -1,0 +1,23 @@
+{
+  "_info": "Einstellbare Werte. Claude darf max. 1 Wert pro Woche aendern (siehe ERKENNTNISSE.md). Harte Grenzen stehen in rechner.py (HART) und gelten immer.",
+  "symbol": "BTC/USD",
+  "L1_aktiv": true,
+  "L1_risiko": 0.02,
+  "L1_rsi_max": 45,
+  "L1_ema_toleranz_atr": 0.3,
+  "L2_aktiv": true,
+  "L2_risiko": 0.01,
+  "L2_rsi_tag_max": 32,
+  "L2_abstand_sma30": 0.12,
+  "L2_lookback": 30,
+  "stop_puffer_atr": 0.3,
+  "stop_min_atr": 0.8,
+  "stop_max_atr": 3.0,
+  "stop_min_pct": 0.01,
+  "stop_max_pct": 0.06,
+  "stop_limit_abstand": 0.005,
+  "ziel_r": 2.0,
+  "zeitstop_kerzen": 12,
+  "gebuehr_pro_seite": 0.0025,
+  "max_cash_anteil": 0.95
+}
