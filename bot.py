@@ -317,7 +317,10 @@ def lauf(nur_pruefen=False):
                           f"KI sagte '{pr['richtung']}', BTC {pr['aenderung']} -> {pr['ergebnis']}")
             k = a.get("letzte_kerze")
             neu_bar = k is not None and (not z.get("bericht_kerze") or zeit(z["bericht_kerze"]) < k)
-            if EREIGNISSE or fertig or neu_bar or not experiment.BERICHT.exists():
+            amp_id = amp.get("erstellt") if amp else None
+            neue_ampel = amp_id != z.get("bericht_ampel")
+            z["bericht_ampel"] = amp_id
+            if EREIGNISSE or fertig or neu_bar or neue_ampel or not experiment.BERICHT.exists():
                 experiment.verlauf_update(now, equity, preis, exp)
                 experiment.bericht(now, equity, preis, exp, z, amp, bot_aktiv())
                 if k is not None:
