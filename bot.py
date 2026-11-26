@@ -825,6 +825,16 @@ def _lauf(z, cfg, now, nur_pruefen):
                 "trend": "AUF" if filter_ok(sym, cfg, filt) else "AB",
                 "punkte": st.punkte(sg, ind, i, tag_ind, float(s.get("gewicht", 1))),
                 "punkte_lern": st.punkte(sg, ind, i, tag_ind, 1.0, lern=True), "staerke": sg["staerke"]})
+    # KI-Tipps ("beobachten" in der KI-Ampel): kleiner Bonus in der Rangliste
+    tipps = {}
+    for t in (amp or {}).get("beobachten") or []:
+        if isinstance(t, dict) and t.get("symbol") in krypto + aktien and t.get("richtung", "steigt") == "steigt":
+            tipps[t["symbol"]] = str(t.get("grund", ""))[:80]
+    for k in kandidaten:
+        if k["symbol"] in tipps:
+            k["punkte"] = round(k["punkte"] + 0.1, 4)
+            k["punkte_lern"] = round(k["punkte_lern"] + 0.1, 4)
+            k["info"] += f" | KI-Tipp: {tipps[k['symbol']]}"
     signale = [k for k in kandidaten if k["signal"]]
     print(f"{len(kandidaten)} Bewertungen, {len(signale)} Signale: "
           + ", ".join(f"{k['symbol']} {k['strategie']}" for k in signale[:15]))
@@ -957,6 +967,20 @@ def _lauf(z, cfg, now, nur_pruefen):
                         protokoll(now, "LERN", f"{k['symbol']}: {warum}")
             else:
                 protokoll(now, "LERN", "gerade kein moeglicher Kandidat")
+
+    # ---- KI-Tipps als eigene Schatten-Trades (1x pro Tag und Wert): waren die News-Tipps gut? ----
+    for sym, grund in tipps.items():
+        ind = inds.get((sym, "tag"))
+        schl = f"{sym}|news_tipp|{heute}"
+        if not ind or schl in z["gesehen"] or ind["atr"][-1] is None:
+            continue
+        preis = preise.get(sym, (ind["c"][-1],))[0]
+        s_tipp = {"stop_atr": 1.5, "ziel_r": 2.0}
+        stop, ziel = st.ausstieg_preise(preis, ind["atr"][-1], s_tipp)
+        z["gesehen"][schl] = now.isoformat()
+        schatten_neu(z, {"schluessel": schl, "symbol": sym, "strategie": "news_tipp", "kerze_t": ind["t"][-1].isoformat(),
+                         "preis": preis, "stop": stop, "ziel": ziel, "zeit_kerzen": 5}, now, f"News-Tipp: {grund}")
+        protokoll(now, "TIPP", f"{sym}: KI-Tipp als Schatten-Trade notiert ({grund})")
 
     # ---- Schatten nachrechnen ----
     for s in schatten_update(inds, cfg):

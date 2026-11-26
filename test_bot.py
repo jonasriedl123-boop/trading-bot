@@ -214,7 +214,12 @@ def test_lern_trade():
     JETZT[0] = datetime(2026, 12, 1, 19, 10, tzinfo=timezone.utc)  # 20:10 Wien
     z = {"version": 3, "positionen": {}, "gesehen": {}, "start_trade": "fertig"}
     bot.ZUSTAND.write_text(json.dumps(z))
+    bot.AMPEL.write_text(json.dumps({"gueltig_bis": "2026-12-02T10:00:00+01:00", "krypto": "GRUEN", "aktien": "GRUEN",
+                                     "fallend": "GRUEN", "beobachten": [{"symbol": "NVDA", "richtung": "steigt",
+                                                                         "grund": "starke Zahlen"}]}))
     bot.lauf()
+    sch = bot.lies_csv(bot.SCHATTEN)
+    assert any(x["strategie"] == "news_tipp" and x["symbol"] == "NVDA" for x in sch), sch[-3:]
     z = json.loads(bot.ZUSTAND.read_text())
     lern = [t for t in z["positionen"].values() if t.get("lern")]
     assert len(lern) == 1 and z["tag"]["lern"], (z["positionen"], bot.LOG)

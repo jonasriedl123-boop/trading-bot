@@ -81,6 +81,7 @@ _(Claude ergänzt diese Tabelle jeden Sonntag.)_
   "aktien": "GRUEN",
   "fallend": "GELB",
   "gesperrt": ["COIN"],
+  "beobachten": [{"symbol": "NVDA", "richtung": "steigt", "grund": "Quartalszahlen viel besser als erwartet"}],
   "sperrzeiten": [
     {"von": "2026-11-27T13:30:00+01:00", "bis": "2026-11-27T15:30:00+01:00", "grund": "US BIP 14:30"}
   ],
@@ -93,6 +94,11 @@ _(Claude ergänzt diese Tabelle jeden Sonntag.)_
 - `krypto` = Krypto kaufen, `aktien` = Aktien/ETFs/GLD/TLT kaufen, `fallend` = inverse ETFs (SH, PSQ, BITI).
   Werte nur `GRUEN` (normal), `GELB` (halbes Risiko), `ROT` (keine neuen Käufe dieser Gruppe).
 - `gesperrt`: einzelne Werte mit schlimmen News (z. B. Gewinnwarnung, Hack, Klage). Nur Symbole aus `config.json`.
+- `beobachten` (Chancen, seit 26.11. Wunsch Jonas): 0–3 Werte aus `config.json` mit frischen, konkreten guten News
+  (Quelle!). Nur `"richtung": "steigt"`. Erwartest du, dass etwas fällt, nimm den inversen ETF (S&P → SH, Nasdaq → PSQ,
+  Bitcoin → BITI). Der Bot gibt diesen Werten +0,1 Punkte in der Rangliste und notiert jeden Tipp als Schatten-Trade
+  `news_tipp` (Stop 1,5 ATR, Ziel 2R, max. 5 Tage). Am Sonntag wird geprüft, ob die Tipps besser als Zufall waren.
+  Kein Tipp ist besser als ein schwacher Tipp.
 - `sperrzeiten`: in dieser Zeit **gar keine** neuen Trades (alle Werte). Wichtige US-Daten 60 Min. vorher bis 60 Min. nachher,
   FOMC 30 Min. vorher bis 90 Min. danach. Heute + morgen eintragen. Zeiten **immer mit Zeitzone** (+01:00 Winter, +02:00 Sommer).
 - `gueltig_bis` = nächster Tag 10:00 Wien. `prognose_24h` (Bitcoin): `steigt` / `faellt` / `seitwaerts` (Schwelle ±1 %).

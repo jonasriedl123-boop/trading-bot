@@ -16,6 +16,7 @@
 | 26.11.2026 | Backtest v3: **keine** Strategie besteht | – | Bot macht nur Lern-Trades. |
 | 26.11.2026 | Lern-Trades 1 → bis zu 3 pro Tag (10/15/20 Uhr), neue Option `freigegeben` | – | Wunsch Jonas: am Wochenende mit wenig Einsatz lernen, ab Montag 30.11. die besten 1–2 Strategien (aus Lern- + Schatten-Trades + Backtest) mit 0,5 % Risiko handeln. Nach 20 Trades prüfen. |
 | 26.11.2026 | `breakout_1h` → `nur_schatten` | echt → nur Schatten | Backtest −0,36R/Trade, 0,5 % Krypto-Gebühr frisst kleine 1h-Bewegungen. Wunsch Jonas: im Schatten weiter testen und am Sonntag anschauen. |
+| 26.11.2026 | KI-Ampel `beobachten` (News-Chancen) | neu | Wunsch Jonas: morgens auch Chancen suchen. Bonus +0,1 in der Rangliste + Schatten-Trade `news_tipp`. Sonntag prüfen, ob die Tipps etwas bringen. |
 
 ## Lektionen
 _(Claude trägt jeden Sonntag ein, was die Trades gezeigt haben)_
