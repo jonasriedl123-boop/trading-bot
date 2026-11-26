@@ -930,12 +930,12 @@ def _lauf(z, cfg, now, nur_pruefen):
         protokoll(now, "NICHT", f"{warum}: {len(liste)} Signale -> Schatten ({', '.join(liste[:6])}"
                                 f"{' ...' if len(liste) > 6 else ''})")
 
-    # ---- Lern-Trades: bis zu N pro Tag zu festen Uhrzeiten, solange heute kein normaler Trade war ----
+    # ---- Lern-Trades: bis zu N pro Tag zu festen Uhrzeiten (zusaetzlich zu normalen Trades) ----
     zeiten = [int(x) for x in cfg.get("lern_zeiten_wien", [cfg.get("lern_trade_ab_wien", 20)])]
     lern_n = int(z["tag"].get("lern_n", 0))
     normal_n = z["tag"]["einstiege"] - lern_n
     faellig = sum(1 for h in zeiten if wien.hour >= h)
-    if normal_n == 0 and lern_n < faellig:
+    if lern_n < faellig and (normal_n == 0 or not cfg.get("lern_nur_ohne_normal", False)):
         if sperre:
             protokoll(now, "LERN", f"Lern-Trade gerade nicht moeglich: {sperre}")
         else:
