@@ -1,0 +1,6 @@
+id,schluessel,symbol,strategie,zeit,kerze_t,einstieg,stop,ziel,zeit_kerzen,warum_nicht,status,ausstieg,ausstieg_zeit,r
+1,PG|breakout_tag|2026112505,PG,breakout_tag,2026-11-26T21:41:41.992877+00:00,2026-11-25T05:00:00+00:00,173.22,168.469129,182.721742,5,Markt-Filter,offen,,,
+2,HD|breakout_tag|2026112505,HD,breakout_tag,2026-11-26T21:41:41.992877+00:00,2026-11-25T05:00:00+00:00,361.355,347.077805,389.909389,5,Markt-Filter,offen,,,
+3,MCD|breakout_tag|2026112505,MCD,breakout_tag,2026-11-26T21:41:41.992877+00:00,2026-11-25T05:00:00+00:00,283.75,274.415473,302.419055,5,Markt-Filter,offen,,,
+4,CVX|ruecksetzer_tag|2026112505,CVX,ruecksetzer_tag,2026-11-26T21:41:41.992877+00:00,2026-11-25T05:00:00+00:00,210.99,205.157623,222.654754,5,Markt-Filter,offen,,,
+5,GLD|umkehr_tag|2026112505,GLD,umkehr_tag,2026-11-26T21:41:41.992877+00:00,2026-11-25T05:00:00+00:00,327.46,318.995751,340.156374,5,Strategie hat den Backtest nicht bestanden,offen,,,

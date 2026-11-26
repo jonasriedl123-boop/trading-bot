@@ -1,0 +1,5 @@
+zeit_wien,aktion,text
+2026-11-26 22:41,KAUF,"BTC/USD START: 0.000246584 zu 60.851, Stop 59.006, Ziel 91.246, Punkte None, KI -"
+2026-11-26 22:41,NICHT,"Markt-Filter: 4 Signale -> Schatten (PG breakout_tag, HD breakout_tag, MCD breakout_tag, CVX ruecksetzer_tag)"
+2026-11-26 22:41,NICHT,"Strategie hat den Backtest nicht bestanden: 1 Signale -> Schatten (GLD umkehr_tag)"
+2026-11-26 22:41,LERN,"LINK/USD: Kauf nicht ausgefuehrt (canceled)"
