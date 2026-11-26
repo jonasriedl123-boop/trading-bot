@@ -3,6 +3,11 @@
 Der Bot schreibt hier jeden Einstieg und jeden fertigen Trade rein. Claude ergaenzt am Sonntag die Analyse.
 
 <!-- NEU -->
+## #2 LINK breakout_1h (Lern-Trade) | 27.11.2026 00:56 | -1.23R (-1.64 $)
+Einstieg 9,40 · Stop 9,26 · Ziel 9,65 · Ausstieg 9,28 (Stop) · MFE 0.08R · MAE -0.75R · KI GELB
+Warum rein: Breakout 0/4 Rueckblicke
+
+
 ## Einstieg XRP umkehr_4h (Lern-Trade, halbes Risiko) | 26.11.2026 23:57
 55.6004 zu 0,9463 · Stop 0,9239 · Ziel 0,9800 · ueberverkauft nein unter Tief nein zurueck ja · Markt-Filter AB · RSI 55.9 · ATR 2.37 % · KI GELB
 

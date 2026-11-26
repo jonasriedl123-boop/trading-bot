@@ -1,12 +1,12 @@
 # Bericht – Trading-Bot v3
 
-Stand: **26.11.2026 23:57** Wien · Paper-Konto · automatisch geschrieben
+Stand: **27.11.2026 00:56** Wien · Paper-Konto · automatisch geschrieben
 
 | | Wert |
 |---|---|
-| Konto | **498,88 $** (-0.2% seit Start 26.11.2026) |
+| Konto | **497,84 $** (-0.4% seit Start 26.11.2026) |
 | Ziel (+50 % in 1 Monat, sehr hoch) | 749,85 $ |
-| Bitcoin halten | -0.7% |
+| Bitcoin halten | -0.5% |
 | S&P 500 (SPY) halten | +0.0% |
 | Markt-Filter | Bitcoin über 200-Tage-Schnitt: False · SPY: False |
 | KI-Ampel | Krypto GELB · Aktien GRUEN · fallend GELB |
@@ -16,14 +16,14 @@ Stand: **26.11.2026 23:57** Wien · Paper-Konto · automatisch geschrieben
 
 | Wert | Strategie | Einstieg | Stop | Ziel | seit |
 |---|---|---|---|---|---|
-| LINK/USD | breakout_1h (Lern) | 9,40 | 9,26 | 9,65 | 26.11. 22:56 |
 | XRP/USD | umkehr_4h (Lern) | 0,9463 | 0,9239 | 0,9800 | 26.11. 23:57 |
 
 ## Trades
 ```
-GESAMT: 0 Trades
+GESAMT: 1 Trades · Treffer 0% · Schnitt -1.23R · Summe -1.2R · PF 0.00 · -1.64 $
   normal: 0 Trades
-  Lern-Trades: 0 Trades
+  Lern-Trades: 1 Trades · Treffer 0% · Schnitt -1.23R · Summe -1.2R · PF 0.00 · -1.64 $
+  breakout_1h: 1 Trades · Treffer 0% · Schnitt -1.23R · Summe -1.2R · PF 0.00 · -1.64 $
 Schatten-Trades (nicht genommen): 0 fertig, Summe +0.0R
 ```
 
