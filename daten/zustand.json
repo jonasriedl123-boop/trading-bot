@@ -10,7 +10,7 @@
       "einstieg": 60851.229207897,
       "stop": 59006.07,
       "ziel": 91246.5,
-      "menge": 0.000246584,
+      "menge": 0.000245966,
       "zeit": "2026-11-26T21:41:41.992877+00:00",
       "zeit_kerzen": 99,
       "stop_order_id": "e51a2bd5-b92f-4aac-9a7b-55a0eacd0726",
@@ -23,7 +23,32 @@
       "news": "",
       "punkte": null,
       "info": "Test, ob Kauf + Stop + Verkauf klappen",
-      "kerze_t": null
+      "kerze_t": null,
+      "mfe_r": 0.0,
+      "mae_r": -0.02
+    },
+    "LINK/USD": {
+      "symbol": "LINK/USD",
+      "strategie": "breakout_1h",
+      "lern": true,
+      "art": "1h",
+      "einstieg": 9.4006,
+      "stop": 9.264551129283785,
+      "ziel": 9.645097741432432,
+      "menge": 9.851289908,
+      "zeit": "2026-11-26T21:56:18.447580+00:00",
+      "zeit_kerzen": 6,
+      "stop_order_id": "ee063984-a920-4fd2-a4a3-609f614502e5",
+      "bracket": false,
+      "bruchteil": false,
+      "trend": "AB",
+      "rsi": 66.7,
+      "atr_pct": 0.9,
+      "ki": "GELB",
+      "news": "",
+      "punkte": 0.038,
+      "info": "Breakout 0/4 Rueckblicke",
+      "kerze_t": "2026-11-26T20:00:00+00:00"
     }
   },
   "gesehen": {
@@ -35,8 +60,8 @@
   },
   "tag": {
     "datum": "2026-11-26",
-    "einstiege": 0,
-    "lern": false,
+    "einstiege": 1,
+    "lern": true,
     "start_equity": 499.9
   },
   "woche": {
@@ -643,7 +668,7 @@
     }
   },
   "letzte_preise": {
-    "btc": 60831.0,
+    "btc": 60815.112,
     "spy": 716.67
   },
   "start_trade": "offen",

@@ -3,3 +3,4 @@ zeit_wien,aktion,text
 2026-11-26 22:41,NICHT,"Markt-Filter: 4 Signale -> Schatten (PG breakout_tag, HD breakout_tag, MCD breakout_tag, CVX ruecksetzer_tag)"
 2026-11-26 22:41,NICHT,"Strategie hat den Backtest nicht bestanden: 1 Signale -> Schatten (GLD umkehr_tag)"
 2026-11-26 22:41,LERN,"LINK/USD: Kauf nicht ausgefuehrt (canceled)"
+2026-11-26 22:56,KAUF,"LINK/USD breakout_1h (Lern-Trade, halbes Risiko): 9.85129 zu 9,40, Stop 9,26, Ziel 9,65, Punkte 0.038, KI GELB"
