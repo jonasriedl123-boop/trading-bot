@@ -22,6 +22,7 @@
 - **Rangliste:** Signal-Stärke 60 % + Trend 20 % + Volumen 20 % (× `gewicht` der Strategie). Beste zuerst.
 - **Normal handeln** nur Strategien, die den Backtest bestanden haben (`daten/backtest_ergebnis.json`) oder in `freigegeben` stehen.
 - **Lern-Trades:** Solange heute kein normaler Trade war: um 10, 15 und 20 Uhr Wien (`lern_zeiten_wien`) je 1 Lern-Trade mit dem besten Kandidaten, 0,5 % Risiko (darf alles testen, markiert `lern=ja`).
+- **`nur_schatten`** in `config.json`: nie echt handeln, nur als Schatten-Trade mitrechnen (seit 26.11.: `breakout_1h`, Gebühren zu hoch). Am Sonntag prüfen, ob es live doch Sinn macht.
 - **`freigegeben`** in `config.json`: Strategien, die Claude am Sonntag trotz Backtest freischaltet (Jonas hat am 26.11. zugestimmt). Dann zuerst `risiko_normal` 0.005, nach 20 Trades prüfen → 0.01 oder wieder raus.
 - **Start-Trade:** einmalig ~15 $ BTC mit Stop, nach 1 Std. verkauft → Handy „✅ Start-Trade hat funktioniert“.
 - **Schatten-Trades** (`daten/schatten.csv`): jedes Signal, das nicht genommen wurde, und was daraus geworden wäre.

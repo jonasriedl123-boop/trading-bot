@@ -1,5 +1,5 @@
 {
-  "_info": "freigegeben = Strategien, die Claude am Sonntag trotz Backtest freischaltet (Jonas hat zugestimmt, anfangs risiko_normal 0.005). lern_zeiten_wien = bis zu 1 Lern-Trade pro Uhrzeit, solange heute kein normaler Trade war. Einstellungen v3. ntfy-Kanal steht NUR im GitHub-Secret NTFY_TOPIC (Repo ist oeffentlich). Das Sonntags-Lernen darf max. 1 Wert pro Woche aendern (vorher Kopie in history/). Harte Grenzen stehen in bot.py (HART) und gelten immer.",
+  "_info": "nur_schatten = Strategien, die nie echt gehandelt werden, nur als Schatten-Trades (breakout_1h: Gebuehren zu hoch, Wunsch Jonas 26.11.). freigegeben = Strategien, die Claude am Sonntag trotz Backtest freischaltet (Jonas hat zugestimmt, anfangs risiko_normal 0.005). lern_zeiten_wien = bis zu 1 Lern-Trade pro Uhrzeit, solange heute kein normaler Trade war. Einstellungen v3. ntfy-Kanal steht NUR im GitHub-Secret NTFY_TOPIC (Repo ist oeffentlich). Das Sonntags-Lernen darf max. 1 Wert pro Woche aendern (vorher Kopie in history/). Harte Grenzen stehen in bot.py (HART) und gelten immer.",
   "version": "v3",
   "risiko_normal": 0.01,
   "risiko_lern": 0.005,
@@ -7,6 +7,7 @@
   "max_einstiege_tag": 6,
   "lern_zeiten_wien": [10, 15, 20],
   "freigegeben": [],
+  "nur_schatten": ["breakout_1h"],
   "max_anteil_pro_position": 0.5,
   "gebuehr_krypto": 0.0025,
   "slippage_aktie": 0.0005,

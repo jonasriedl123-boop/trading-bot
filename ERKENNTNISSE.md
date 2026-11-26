@@ -15,6 +15,7 @@
 | 26.11.2026 | **v3: Umbau nach BOT-PLAN.md Teil B** | nur BTC/BITI → ~45 Werte; L1/L2/S1 → Breakout/Rücksetzer/Umkehr + Markt-Filter; max. 1 → 3 Positionen; Lern-Trades, Start-Trade, Schatten für alle Signale, ntfy | v2 hat im Backtest 2023–2026 −18 % gemacht und tagelang nicht gehandelt. Alter Code + Daten in `history/v2-btc/`. |
 | 26.11.2026 | Backtest v3: **keine** Strategie besteht | – | Bot macht nur Lern-Trades. |
 | 26.11.2026 | Lern-Trades 1 → bis zu 3 pro Tag (10/15/20 Uhr), neue Option `freigegeben` | – | Wunsch Jonas: am Wochenende mit wenig Einsatz lernen, ab Montag 30.11. die besten 1–2 Strategien (aus Lern- + Schatten-Trades + Backtest) mit 0,5 % Risiko handeln. Nach 20 Trades prüfen. |
+| 26.11.2026 | `breakout_1h` → `nur_schatten` | echt → nur Schatten | Backtest −0,36R/Trade, 0,5 % Krypto-Gebühr frisst kleine 1h-Bewegungen. Wunsch Jonas: im Schatten weiter testen und am Sonntag anschauen. |
 
 ## Lektionen
 _(Claude trägt jeden Sonntag ein, was die Trades gezeigt haben)_

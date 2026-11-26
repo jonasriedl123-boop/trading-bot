@@ -820,7 +820,8 @@ def _lauf(z, cfg, now, nur_pruefen):
                 "kerze_t": ind["t"][i].isoformat(), "schluessel": f"{sym}|{name}|{ind['t'][i]:%Y%m%d%H}",
                 "rsi": sg["rsi"], "atr_pct": round(sg["atr"] / preis * 100, 2), "frisch": alt_min <= HART["daten_max_alter_min"],
                 "filter": filter_ok(sym, cfg, filt),
-                "strategie_ok": bool(s.get("aktiv")) and (bool(passt.get(name)) or name in cfg.get("freigegeben", [])),
+                "strategie_ok": bool(s.get("aktiv")) and name not in cfg.get("nur_schatten", [])
+                and (bool(passt.get(name)) or name in cfg.get("freigegeben", [])),
                 "trend": "AUF" if filter_ok(sym, cfg, filt) else "AB",
                 "punkte": st.punkte(sg, ind, i, tag_ind, float(s.get("gewicht", 1))),
                 "punkte_lern": st.punkte(sg, ind, i, tag_ind, 1.0, lern=True), "staerke": sg["staerke"]})
@@ -938,7 +939,7 @@ def _lauf(z, cfg, now, nur_pruefen):
         if sperre:
             protokoll(now, "LERN", f"Lern-Trade gerade nicht moeglich: {sperre}")
         else:
-            moegliche = [k for k in kandidaten if not blockiert(k)]
+            moegliche = [k for k in kandidaten if not blockiert(k) and k["strategie"] not in cfg.get("nur_schatten", [])]
             if moegliche:
                 k = max(moegliche, key=lambda x: x["punkte_lern"])
                 news, k["news"] = warn_news(k["symbol"], now)
