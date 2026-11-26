@@ -539,8 +539,13 @@ def kaufen(z, cfg, now, k, risiko, lern, konto, assets, offene_anz):
         qty = runde_ab(menge, a.get("schritt", 1e-9))
         if float(qty) * preis < HART["min_krypto_usd"] or float(qty) < a.get("min_qty", 0):
             return False, "Order zu klein"
+        # Limit 1 % ueber dem Kurs (Schutz vor Ausreissern). Duenne Krypto-Orderbuecher -> 0,3 % war zu knapp.
         o = order({"symbol": sym, "qty": str(qty), "side": "buy", "type": "limit", "time_in_force": "ioc",
-                   "limit_price": preis_txt(preis * 1.003, a.get("preis_schritt")), "client_order_id": cid})
+                   "limit_price": preis_txt(preis * 1.01, a.get("preis_schritt")), "client_order_id": cid})
+        f0 = warte_auf_fill(o["id"], 6)
+        if not f0 or float(f0.get("filled_qty") or 0) <= 0:  # nichts bekommen -> Markt-Order
+            o = order({"symbol": sym, "qty": str(qty), "side": "buy", "type": "market", "time_in_force": "gtc",
+                       "client_order_id": cid + "-m"})
     else:
         ganz = math.floor(menge)
         if ganz >= 1:  # ganze Stueck -> Bracket-Order (Stop + Ziel gleich bei Alpaca)
