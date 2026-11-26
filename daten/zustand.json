@@ -2,31 +2,6 @@
   "version": 3,
   "alt_v2": {},
   "positionen": {
-    "BTC/USD": {
-      "symbol": "BTC/USD",
-      "strategie": "START",
-      "lern": false,
-      "art": "1h",
-      "einstieg": 60851.229207897,
-      "stop": 59006.07,
-      "ziel": 91246.5,
-      "menge": 0.000245966,
-      "zeit": "2026-11-26T21:41:41.992877+00:00",
-      "zeit_kerzen": 99,
-      "stop_order_id": "e51a2bd5-b92f-4aac-9a7b-55a0eacd0726",
-      "bracket": false,
-      "bruchteil": false,
-      "trend": null,
-      "rsi": null,
-      "atr_pct": null,
-      "ki": "-",
-      "news": "",
-      "punkte": null,
-      "info": "Test, ob Kauf + Stop + Verkauf klappen",
-      "kerze_t": null,
-      "mfe_r": 0.0,
-      "mae_r": -0.02
-    },
     "LINK/USD": {
       "symbol": "LINK/USD",
       "strategie": "breakout_1h",
@@ -35,7 +10,7 @@
       "einstieg": 9.4006,
       "stop": 9.264551129283785,
       "ziel": 9.645097741432432,
-      "menge": 9.851289908,
+      "menge": 9.826661683,
       "zeit": "2026-11-26T21:56:18.447580+00:00",
       "zeit_kerzen": 6,
       "stop_order_id": "ee063984-a920-4fd2-a4a3-609f614502e5",
@@ -48,7 +23,32 @@
       "news": "",
       "punkte": 0.038,
       "info": "Breakout 0/4 Rueckblicke",
-      "kerze_t": "2026-11-26T20:00:00+00:00"
+      "kerze_t": "2026-11-26T20:00:00+00:00",
+      "mfe_r": 0.08,
+      "mae_r": -0.75
+    },
+    "XRP/USD": {
+      "symbol": "XRP/USD",
+      "strategie": "umkehr_4h",
+      "lern": true,
+      "art": "4h",
+      "einstieg": 0.9463,
+      "stop": 0.9238808612785261,
+      "ziel": 0.979978708082211,
+      "menge": 55.600396052,
+      "zeit": "2026-11-26T22:57:51.877279+00:00",
+      "zeit_kerzen": 12,
+      "stop_order_id": "88c910f2-3377-4d91-ae7f-7874276b3a1a",
+      "bracket": false,
+      "bruchteil": false,
+      "trend": "AB",
+      "rsi": 55.9,
+      "atr_pct": 2.37,
+      "ki": "GELB",
+      "news": "",
+      "punkte": 0.1095,
+      "info": "ueberverkauft nein unter Tief nein zurueck ja",
+      "kerze_t": "2026-11-26T16:00:00+00:00"
     }
   },
   "gesehen": {
@@ -56,13 +56,15 @@
     "HD|breakout_tag|2026112505": "2026-11-26T21:41:41.992877+00:00",
     "MCD|breakout_tag|2026112505": "2026-11-26T21:41:41.992877+00:00",
     "CVX|ruecksetzer_tag|2026112505": "2026-11-26T21:41:41.992877+00:00",
-    "GLD|umkehr_tag|2026112505": "2026-11-26T21:41:41.992877+00:00"
+    "GLD|umkehr_tag|2026112505": "2026-11-26T21:41:41.992877+00:00",
+    "LINK/USD|breakout_1h|2026112621": "2026-11-26T22:57:51.877279+00:00"
   },
   "tag": {
     "datum": "2026-11-26",
-    "einstiege": 1,
+    "einstiege": 2,
     "lern": true,
-    "start_equity": 499.9
+    "start_equity": 499.9,
+    "lern_n": 1
   },
   "woche": {
     "kw": "2026-W48",
@@ -668,9 +670,9 @@
     }
   },
   "letzte_preise": {
-    "btc": 60815.112,
+    "btc": 60384.8,
     "spy": 716.67
   },
-  "start_trade": "offen",
+  "start_trade": "fertig",
   "abend": "2026-11-26"
 }

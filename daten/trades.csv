@@ -1,0 +1,2 @@
+id,symbol,strategie,lern,einstieg_zeit,einstieg,stop,ziel,menge,ausstieg_zeit,ausstieg,grund,gewinn_usd,gebuehr_usd,r,mfe_r,mae_r,trend,rsi,atr_pct,uhrzeit_wien,wochentag,ki,news,punkte,info
+1,BTC/USD,START,nein,2026-11-26T21:41:41.992877+00:00,60851.229207897,59006.07,91246.5,0.000245966,2026-11-26T22:57:51.877279+00:00,60376.587,Start-Test fertig,-0.19,0.07,-0.42,0.04,-0.25,,,,22:41,Do,-,,,"Test, ob Kauf + Stop + Verkauf klappen"
