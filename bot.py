@@ -819,7 +819,8 @@ def _lauf(z, cfg, now, nur_pruefen):
                 "preis": preis, "stop": stop, "ziel": ziel, "zeit_kerzen": s["zeit_kerzen"],
                 "kerze_t": ind["t"][i].isoformat(), "schluessel": f"{sym}|{name}|{ind['t'][i]:%Y%m%d%H}",
                 "rsi": sg["rsi"], "atr_pct": round(sg["atr"] / preis * 100, 2), "frisch": alt_min <= HART["daten_max_alter_min"],
-                "filter": filter_ok(sym, cfg, filt), "strategie_ok": bool(s.get("aktiv")) and bool(passt.get(name)),
+                "filter": filter_ok(sym, cfg, filt),
+                "strategie_ok": bool(s.get("aktiv")) and (bool(passt.get(name)) or name in cfg.get("freigegeben", [])),
                 "trend": "AUF" if filter_ok(sym, cfg, filt) else "AB",
                 "punkte": st.punkte(sg, ind, i, tag_ind, float(s.get("gewicht", 1))),
                 "punkte_lern": st.punkte(sg, ind, i, tag_ind, 1.0, lern=True), "staerke": sg["staerke"]})
@@ -928,28 +929,33 @@ def _lauf(z, cfg, now, nur_pruefen):
         protokoll(now, "NICHT", f"{warum}: {len(liste)} Signale -> Schatten ({', '.join(liste[:6])}"
                                 f"{' ...' if len(liste) > 6 else ''})")
 
-    # ---- Lern-Trade: bis 20:00 kein Trade -> bester Kandidat mit halbem Risiko ----
-    if wien.hour >= int(cfg["lern_trade_ab_wien"]) and z["tag"]["einstiege"] == 0 and not z["tag"]["lern"]:
+    # ---- Lern-Trades: bis zu N pro Tag zu festen Uhrzeiten, solange heute kein normaler Trade war ----
+    zeiten = [int(x) for x in cfg.get("lern_zeiten_wien", [cfg.get("lern_trade_ab_wien", 20)])]
+    lern_n = int(z["tag"].get("lern_n", 0))
+    normal_n = z["tag"]["einstiege"] - lern_n
+    faellig = sum(1 for h in zeiten if wien.hour >= h)
+    if normal_n == 0 and lern_n < faellig:
         if sperre:
-            protokoll(now, "LERN", f"Lern-Trade heute nicht moeglich: {sperre}")
-            z["tag"]["lern"] = True
+            protokoll(now, "LERN", f"Lern-Trade gerade nicht moeglich: {sperre}")
         else:
             moegliche = [k for k in kandidaten if not blockiert(k)]
             if moegliche:
                 k = max(moegliche, key=lambda x: x["punkte_lern"])
                 news, k["news"] = warn_news(k["symbol"], now)
-                if not news:
+                if news:
+                    protokoll(now, "LERN", f"{k['symbol']}: Warn-News {news}")
+                else:
                     farbe, faktor = ki_farbe(amp, ampel_gruppe(k["symbol"], cfg))
                     k["ki"] = farbe
                     ok, warum = kaufen(z, cfg, now, k, cfg["risiko_lern"] * faktor, True, konto, assets,
                                        len(z["positionen"]))
                     if ok:
+                        z["tag"]["lern_n"] = lern_n + 1
                         z["tag"]["lern"] = True
                     else:
                         protokoll(now, "LERN", f"{k['symbol']}: {warum}")
-            elif wien.hour >= 22:
-                z["tag"]["lern"] = True
-                protokoll(now, "LERN", "kein moeglicher Kandidat heute")
+            else:
+                protokoll(now, "LERN", "gerade kein moeglicher Kandidat")
 
     # ---- Schatten nachrechnen ----
     for s in schatten_update(inds, cfg):
