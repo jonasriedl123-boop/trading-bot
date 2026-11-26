@@ -22,33 +22,30 @@ concurrency:
 jobs:
   bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          fetch-depth: 1
 
+      # Python 3 ist auf ubuntu-latest schon da (spart Minuten). Keine Zusatz-Pakete noetig.
       - name: Bot laufen lassen
         env:
           APCA_API_KEY_ID: ${{ secrets.APCA_API_KEY_ID }}
           APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python3 bot.py "${{ github.event.inputs.modus || 'lauf' }}"
 
-      - name: Ergebnisse speichern
+      - name: Protokoll speichern (Commit haelt den Zeitplan aktiv)
         if: always()
         run: |
           git config user.name "trading-bot"
           git config user.email "trading-bot@users.noreply.github.com"
-          git add daten JOURNAL.md BERICHT.md 2>/dev/null || git add daten JOURNAL.md
-          if git diff --cached --quiet; then
-            echo "Nichts Neues."
-            exit 0
-          fi
-          git commit -m "Bot: $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git add daten JOURNAL.md BERICHT.md
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Bot: $(date -u +'%Y-%m-%d %H:%M') UTC"
           for i in 1 2 3 4 5; do
-            git pull --rebase && git push && exit 0
+            git pull -q --rebase && git push -q && exit 0
             sleep $((i * 5))
           done
           exit 1

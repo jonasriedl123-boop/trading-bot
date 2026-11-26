@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Jonas' Trading-Bot. Laeuft auf GitHub alle 30 Minuten.
-NUR Alpaca PAPER (Spielgeld). Kauft nur, nie Short, kein Hebel:
-  - BTC/USD   wenn Bitcoin steigen soll (Setups L1, L2)
-  - BITI      wenn Bitcoin fallen soll (Setup S1). BITI steigt, wenn BTC faellt. Nur zu US-Boersenzeiten.
-Die KI-Ampel (daten/ki_ampel.json, schreibt Claude jeden Morgen) darf Signale sperren oder das Risiko halbieren.
-experiment.py vergleicht alles und schreibt BERICHT.md.
+Jonas' Trading-Bot v3. Laeuft auf GitHub alle 30 Minuten. NUR Alpaca PAPER (Spielgeld).
+
+Handelt Krypto (24/7) und US-Aktien/ETFs (Mo-Fr Boersenzeit). Fallende Kurse nur ueber inverse ETFs ohne Hebel.
+Jeder Lauf: Daten holen, alle Werte bewerten, offene Positionen + Stops pruefen, beste Signale kaufen,
+Schatten-Trades notieren, Meldungen per ntfy aufs Handy. Details: BOT-PLAN.md Teil B, Strategien: strategien.py.
 
   python3 bot.py lauf      -> normaler Lauf (handelt)
-  python3 bot.py pruefen   -> nur anschauen: Konto + Kurse + Signal, KEINE Orders, nichts speichern
+  python3 bot.py pruefen   -> nur anschauen, KEINE Orders, nichts speichern
   python3 bot.py stats     -> Auswertung aller Trades
 """
 import csv
@@ -21,50 +20,176 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal, ROUND_DOWN
 from pathlib import Path
 
-import experiment
-import rechner
-from rechner import WIEN, zeit
+import strategien as st
+
+try:
+    from zoneinfo import ZoneInfo
+    WIEN, NY = ZoneInfo("Europe/Vienna"), ZoneInfo("America/New_York")
+except Exception:
+    WIEN, NY = timezone(timedelta(hours=1)), timezone(timedelta(hours=-5))
+
+# ---------- Harte Grenzen: gelten immer. Nur Jonas aendert die (nie das Lernen). ----------
+HART = {
+    "risiko_max": 0.02,          # max. 2 % vom Konto pro Trade
+    "max_positionen": 3,
+    "tageslimit": -0.03,         # -3 % an einem Tag -> heute keine neuen Trades
+    "verlustserie": 3,           # 3 Verluste in Folge -> 12 Std. Pause
+    "pause_std": 12,
+    "sperre_nach_verlust_std": 2,  # denselben Wert 2 Std. nicht neu kaufen
+    "notbremse": 425.0,          # Konto unter 425 $ -> keine neuen Trades
+    "max_cash_anteil": 0.95,
+    "min_krypto_usd": 10.0,
+    "daten_max_alter_min": 60,   # Kurse aelter als 1 Std. -> nicht kaufen
+}
+HEBEL_VERBOTEN = ("SQQQ", "TQQQ", "SPXU", "SPXS", "SDS", "QID", "UPRO", "SSO", "QLD", "SBIT", "BITX")
 
 HIER = Path(__file__).resolve().parent
 DATEN = HIER / "daten"
-ZUSTAND = DATEN / "zustand.json"
-TRADES = DATEN / "trades.csv"
-PROTOKOLL = DATEN / "protokoll.csv"
-AMPEL = DATEN / "ki_ampel.json"
-JOURNAL = HIER / "JOURNAL.md"
+ZUSTAND, TRADES, SCHATTEN = DATEN / "zustand.json", DATEN / "trades.csv", DATEN / "schatten.csv"
+PROTOKOLL, LEBEN, AMPEL = DATEN / "protokoll.csv", DATEN / "lebenszeichen.json", DATEN / "ki_ampel.json"
+NACHRICHT, BT_ERGEBNIS = DATEN / "nachricht.txt", DATEN / "backtest_ergebnis.json"
+JOURNAL, BERICHT, CONFIG = HIER / "JOURNAL.md", HIER / "BERICHT.md", HIER / "config.json"
 
 TRADING = "https://paper-api.alpaca.markets"  # fest eingebaut: nur Paper, nie Echtgeld
 DATA = "https://data.alpaca.markets"
-SYMBOL, POS_SYMBOL = "BTC/USD", "BTCUSD"
-INVERS = "BITI"  # ProShares Short Bitcoin ETF (-1x BTC pro Tag)
-STAUB_USD = 5.0  # Rest unter 5 $ gilt als "keine Position"
-MIN_BIS_SCHLUSS = timedelta(minutes=15)  # BITI nicht mehr kaufen, wenn die Boerse gleich schliesst
-S1_WARTEN = timedelta(hours=20)  # S1-Signal bei geschlossener Boerse wartet max. so lange
-WARNWOERTER = ["hack", "hacked", "exploit", "stolen", "drained", "ban ", "banned", "halts withdrawals",
-               "suspends withdrawals", "insolven", "bankrupt", "sec sues", "delist", "outage", "emergency"]
-TRADE_SPALTEN = ["id", "setup", "einstieg_zeit", "einstieg", "stop", "ziel", "menge", "ausstieg_zeit",
-                 "ausstieg", "grund", "r_brutto", "r_netto", "gewinn_usd", "mae_r", "mfe_r", "regime",
-                 "rsi_tag", "rsi_4h", "atr_pct", "symbol", "ki", "notiz"]
-EREIGNISSE = []
+TRADE_SPALTEN = ["id", "symbol", "strategie", "lern", "einstieg_zeit", "einstieg", "stop", "ziel", "menge",
+                 "ausstieg_zeit", "ausstieg", "grund", "gewinn_usd", "gebuehr_usd", "r", "mfe_r", "mae_r",
+                 "trend", "rsi", "atr_pct", "uhrzeit_wien", "wochentag", "ki", "news", "punkte", "info"]
+SCH_SPALTEN = ["id", "schluessel", "symbol", "strategie", "zeit", "kerze_t", "einstieg", "stop", "ziel",
+               "zeit_kerzen", "warum_nicht", "status", "ausstieg", "ausstieg_zeit", "r"]
+TAGE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+WARNWOERTER = ["hack", "hacked", "exploit", "stolen", "drained", "banned", "halts withdrawals", "suspends withdrawals",
+               "insolven", "bankrupt", "sec sues", "delist", "fraud", "halted"]
+LOG = []
 
 
-def f(x):
-    return f"{x:,.2f}" if abs(x) < 1000 else f"{x:,.0f}"
+# ---------------- kleine Helfer ----------------
+def zeit(s):
+    d = s if isinstance(s, datetime) else datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+    return (d if d.tzinfo else d.replace(tzinfo=WIEN)).astimezone(timezone.utc)
+
+
+def zahl(x):
+    """Deutsche Schreibweise: 2.410 / 24,15 / 0,1234"""
+    x = float(x)
+    if abs(x) >= 1000:
+        return f"{x:,.0f}".replace(",", ".")
+    if abs(x) >= 1:
+        return f"{x:.2f}".replace(".", ",")
+    return f"{x:.4f}".replace(".", ",")
+
+
+def dez(x, n=2):
+    """+4,10 statt +4.10"""
+    return f"{x:+.{n}f}".replace(".", ",")
+
+
+def kurz(sym):
+    return sym.replace("/USD", "")
+
+
+def ist_krypto(sym):
+    return "/" in sym
+
+
+def pos_sym(sym):
+    return sym.replace("/", "")
+
+
+def runde_ab(x, schritt):
+    s = Decimal(str(schritt))
+    return (Decimal(str(x)) / s).to_integral_value(rounding=ROUND_DOWN) * s
+
+
+def preis_txt(p, schritt=None):
+    if schritt:
+        return str((Decimal(str(p)) / Decimal(str(schritt))).to_integral_value() * Decimal(str(schritt)))
+    return f"{p:.2f}" if p >= 1 else f"{p:.4f}"
+
+
+def lies_csv(pfad):
+    if not pfad.exists():
+        return []
+    with pfad.open(encoding="utf-8") as d:
+        return list(csv.DictReader(d))
+
+
+def schreib_csv(pfad, spalten, zeilen):
+    with pfad.open("w", encoding="utf-8", newline="") as d:
+        w = csv.DictWriter(d, fieldnames=spalten, extrasaction="ignore")
+        w.writeheader()
+        w.writerows(zeilen)
+
+
+def lade_config():
+    c = json.loads(CONFIG.read_text(encoding="utf-8"))
+    c["risiko_normal"] = min(float(c["risiko_normal"]), HART["risiko_max"])
+    c["risiko_lern"] = min(float(c["risiko_lern"]), HART["risiko_max"])
+    c["risiko_max_abstimmung"] = min(float(c.get("risiko_max_abstimmung", 0.015)), HART["risiko_max"])
+    for liste in ("aktien", "neutral", "invers_aktien", "invers_krypto"):
+        c[liste] = [s for s in c.get(liste, []) if s not in HEBEL_VERBOTEN]
+    return c
+
+
+def melden(text, prio=None):
+    """Kurze Nachricht aufs Handy (ntfy). Fehler hier stoppen den Bot nie."""
+    print("NTFY:", text)
+    LOG.append(text)
+    kanal = os.environ.get("NTFY_TOPIC") or (lade_config().get("ntfy_kanal") if CONFIG.exists() else None)
+    if not kanal or os.environ.get("BOT_TEST"):
+        return
+    kopf = {"Title": "Trading-Bot"}
+    if prio:
+        kopf["Priority"] = prio
+    try:
+        urllib.request.urlopen(urllib.request.Request(f"https://ntfy.sh/{kanal}", data=text.encode("utf-8"),
+                                                      headers=kopf, method="POST"), timeout=10)
+    except Exception as e:
+        print(f"WARNUNG ntfy: {e!r}")
+
+
+def warnung(z, schluessel, text, now, stunden=3):
+    """Gleiche Warnung max. alle 3 Std. aufs Handy."""
+    alt = z.setdefault("warnungen", {}).get(schluessel)
+    if not alt or zeit(alt) + timedelta(hours=stunden) <= now:
+        z["warnungen"][schluessel] = now.isoformat()
+        melden(text, prio="high")
+
+
+def protokoll(now, aktion, text):
+    zeilen = PROTOKOLL.read_text(encoding="utf-8").splitlines()[1:] if PROTOKOLL.exists() else []
+    neu = f"{now.astimezone(WIEN):%Y-%m-%d %H:%M},{aktion},\"{str(text).replace(chr(34), chr(39))[:300]}\""
+    if zeilen and zeilen[-1].split(",", 1)[-1] == neu.split(",", 1)[-1]:
+        return
+    zeilen = (zeilen + [neu])[-1500:]
+    PROTOKOLL.write_text("zeit_wien,aktion,text\n" + "\n".join(zeilen) + "\n", encoding="utf-8")
+    print(f"[{aktion}] {text}")
+
+
+def journal(eintrag):
+    alt = JOURNAL.read_text(encoding="utf-8") if JOURNAL.exists() else "# Journal (neueste oben)\n\n<!-- NEU -->\n"
+    kopf, _, rest = alt.partition("<!-- NEU -->")
+    JOURNAL.write_text(kopf + "<!-- NEU -->\n" + eintrag + "\n" + rest, encoding="utf-8")
+
+
+def bot_aktiv():
+    d = HIER / "BOT_AKTIV.txt"
+    return not d.exists() or d.read_text(encoding="utf-8").strip().lower().startswith("ja")
 
 
 # ---------------- Alpaca ----------------
 def api(methode, url, body=None, ok404=False):
     kopf = {"APCA-API-KEY-ID": os.environ["APCA_API_KEY_ID"].strip(),
             "APCA-API-SECRET-KEY": os.environ["APCA_API_SECRET_KEY"].strip(), "accept": "application/json"}
-    daten = None
+    daten = json.dumps(body).encode() if body is not None else None
     if body is not None:
-        daten = json.dumps(body).encode()
         kopf["content-type"] = "application/json"
     for versuch in range(3):
-        req = urllib.request.Request(url, data=daten, headers=kopf, method=methode)
         try:
+            req = urllib.request.Request(url, data=daten, headers=kopf, method=methode)
             with urllib.request.urlopen(req, timeout=20) as antwort:
                 text = antwort.read().decode()
                 return json.loads(text) if text else {}
@@ -74,7 +199,7 @@ def api(methode, url, body=None, ok404=False):
             if e.code in (429, 500, 502, 503, 504) and versuch < 2:
                 time.sleep(3)
                 continue
-            raise RuntimeError(f"{methode} {url} -> {e.code}: {e.read().decode()[:300]}")
+            raise RuntimeError(f"{methode} {url.split('?')[0]} -> {e.code}: {e.read().decode()[:300]}")
         except urllib.error.URLError:
             if versuch < 2:
                 time.sleep(3)
@@ -82,72 +207,112 @@ def api(methode, url, body=None, ok404=False):
             raise
 
 
-def kerzen(timeframe, tage, now):
-    start = (now - timedelta(days=tage)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    alle, token = [], None
+def _kerzen_holen(url_basis, symbole, q):
+    alle, token = {s: [] for s in symbole}, None
     while True:
-        q = {"symbols": SYMBOL, "timeframe": timeframe, "start": start, "limit": 1000}
+        qq = dict(q, symbols=",".join(symbole), limit=10000)
         if token:
-            q["page_token"] = token
-        r = api("GET", f"{DATA}/v1beta3/crypto/us/bars?" + urllib.parse.urlencode(q))
-        alle += (r.get("bars") or {}).get(SYMBOL, [])
+            qq["page_token"] = token
+        r = api("GET", url_basis + "?" + urllib.parse.urlencode(qq))
+        for s, bars in (r.get("bars") or {}).items():
+            alle.setdefault(s, []).extend(bars)
         token = r.get("next_page_token")
         if not token:
             break
-    return [{"t": zeit(b["t"]), "o": b["o"], "h": b["h"], "l": b["l"], "c": b["c"]} for b in alle]
+    return {s: [{"t": zeit(b["t"]), "o": b["o"], "h": b["h"], "l": b["l"], "c": b["c"], "v": b.get("v", 0)}
+                for b in bars] for s, bars in alle.items()}
 
 
-def letzter_preis():
-    r = api("GET", f"{DATA}/v1beta3/crypto/us/latest/trades?" + urllib.parse.urlencode({"symbols": SYMBOL}))
-    return float(r["trades"][SYMBOL]["p"])
+def krypto_kerzen(symbole, tf, start, ende=None):
+    q = {"timeframe": tf, "start": start.strftime("%Y-%m-%dT%H:%M:%SZ")}
+    if ende:
+        q["end"] = ende.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return _kerzen_holen(f"{DATA}/v1beta3/crypto/us/bars", symbole, q)
 
 
-def biti_preis():
-    r = api("GET", f"{DATA}/v2/stocks/{INVERS}/trades/latest?feed=iex")
-    return float(r["trade"]["p"])
+def aktien_kerzen(symbole, start, ende):
+    """Tageskerzen. SIP (alle Boersen, 15 Min. verzoegert gratis), sonst IEX."""
+    q = {"timeframe": "1Day", "start": start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+         "end": ende.strftime("%Y-%m-%dT%H:%M:%SZ"), "adjustment": "split", "feed": "sip"}
+    try:
+        return _kerzen_holen(f"{DATA}/v2/stocks/bars", symbole, q)
+    except RuntimeError:
+        q["feed"] = "iex"
+        return _kerzen_holen(f"{DATA}/v2/stocks/bars", symbole, q)
 
 
-def warn_news(now):
-    q = {"symbols": POS_SYMBOL, "limit": 20, "start": (now - timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ")}
-    r = api("GET", f"{DATA}/v1beta1/news?" + urllib.parse.urlencode(q))
-    for n in r.get("news", []):
+def fertige(kerzen, stunden, now):
+    return [k for k in sorted(kerzen, key=lambda k: k["t"]) if k["t"] + timedelta(hours=stunden) <= now]
+
+
+def letzte_preise(krypto, aktien):
+    out = {}
+    if krypto:
+        r = api("GET", f"{DATA}/v1beta3/crypto/us/latest/trades?" + urllib.parse.urlencode({"symbols": ",".join(krypto)}))
+        for s, t in (r.get("trades") or {}).items():
+            out[s] = (float(t["p"]), zeit(t["t"]))
+    if aktien:
+        r = api("GET", f"{DATA}/v2/stocks/trades/latest?" + urllib.parse.urlencode(
+            {"symbols": ",".join(aktien), "feed": "iex"}))
+        for s, t in (r.get("trades") or {}).items():
+            out[s] = (float(t["p"]), zeit(t["t"]))
+    return out
+
+
+def warn_news(sym, now):
+    try:
+        q = {"symbols": pos_sym(sym), "limit": 20, "start": (now - timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ")}
+        r = api("GET", f"{DATA}/v1beta1/news?" + urllib.parse.urlencode(q))
+    except Exception:
+        return None, ""
+    news = r.get("news", [])
+    for n in news:
         text = f" {n.get('headline', '')} {n.get('summary', '')} ".lower()
         for w in WARNWOERTER:
             if w in text:
-                return f"{w.strip()}: {n.get('headline', '')[:120]}"
-    return None
+                return f"{w}: {n.get('headline', '')[:100]}", ""
+    return None, (news[0].get("headline", "")[:120] if news else "")
 
 
 def order(body):
     return api("POST", f"{TRADING}/v2/orders", body)
 
 
-def warte_auf_fill(order_id, sekunden=30):
+def warte_auf_fill(order_id, sekunden=20):
     o = None
-    for _ in range(sekunden // 2):
-        o = api("GET", f"{TRADING}/v2/orders/{order_id}")
-        if o["status"] == "filled":
+    for _ in range(max(1, sekunden // 2)):
+        o = api("GET", f"{TRADING}/v2/orders/{order_id}?nested=true")
+        if o["status"] == "filled" or o["status"] in ("canceled", "rejected", "expired"):
             return o
-        if o["status"] in ("canceled", "rejected", "expired"):
-            break
         time.sleep(2)
+    if o and o["status"] not in ("filled",):
+        api("DELETE", f"{TRADING}/v2/orders/{order_id}", ok404=True)
+        time.sleep(1)
+        o = api("GET", f"{TRADING}/v2/orders/{order_id}?nested=true")
     return o
 
 
-def setze_stop(symbol, menge, stop, stop_limit, now):
-    if symbol == INVERS:  # Aktie, ganze Stueck: einfacher Stop, gilt bis zum Verkauf
-        return order({"symbol": INVERS, "qty": str(int(menge)), "side": "sell", "type": "stop",
-                      "time_in_force": "gtc", "stop_price": f"{stop:.2f}",
-                      "client_order_id": f"bot-{now:%Y%m%d-%H%M%S}-stop"})
-    qty = int(menge * 0.997 * 1e6) / 1e6  # Krypto-Gebuehr wird in BTC abgezogen -> kleiner Puffer
-    return order({"symbol": SYMBOL, "qty": f"{qty:.6f}", "side": "sell", "type": "stop_limit",
-                  "time_in_force": "gtc", "stop_price": str(stop), "limit_price": str(stop_limit),
-                  "client_order_id": f"bot-{now:%Y%m%d-%H%M%S}-stop"})
+def assets_laden(z, cfg, now):
+    """Asset-Infos (handelbar? Bruchteile? Schrittweiten) 1x pro Tag."""
+    heute = f"{now:%Y-%m-%d}"
+    a = z.get("assets") or {}
+    if a.get("_datum") == heute:
+        return a
+    a = {"_datum": heute}
+    for x in api("GET", f"{TRADING}/v2/assets?asset_class=crypto&status=active"):
+        a[x["symbol"]] = {"ok": bool(x.get("tradable")), "min_qty": float(x.get("min_order_size") or 0),
+                          "schritt": float(x.get("min_trade_increment") or 1e-9),
+                          "preis_schritt": float(x.get("price_increment") or 0.01)}
+    for s in cfg["aktien"] + cfg["neutral"] + cfg["invers_aktien"] + cfg["invers_krypto"]:
+        x = api("GET", f"{TRADING}/v2/assets/{s}", ok404=True)
+        a[s] = {"ok": bool(x and x.get("tradable") and x.get("status") == "active"),
+                "bruchteil": bool(x and x.get("fractionable"))}
+    z["assets"] = a
+    return a
 
 
 # ---------------- KI-Ampel ----------------
 def ki_ampel(now):
-    """Liest die Ampel von Claude. Fehlt sie oder ist sie abgelaufen -> None (Bot handelt nur nach Regeln)."""
     try:
         amp = json.loads(AMPEL.read_text(encoding="utf-8"))
         return amp if zeit(amp["gueltig_bis"]) >= now else None
@@ -155,391 +320,681 @@ def ki_ampel(now):
         return None
 
 
-def ki_check(amp, richtung, now):
-    """Rueckgabe (sperre oder None, Risiko-Faktor, Label)."""
-    if not amp:
-        return None, 1.0, "keine"
-    for s in amp.get("sperrzeiten") or []:
+def ki_sperrzeit(amp, now):
+    for s in (amp or {}).get("sperrzeiten") or []:
         try:
             if zeit(s["von"]) <= now <= zeit(s["bis"]):
-                return (f"KI-Termin: {s.get('grund', '?')} (Sperre bis {zeit(s['bis']).astimezone(WIEN):%H:%M})",
-                        1.0, "TERMIN")
+                return f"KI-Termin: {s.get('grund', '?')} (bis {zeit(s['bis']).astimezone(WIEN):%H:%M})"
         except Exception:
             continue
-    farbe = str(amp.get(richtung, "GRUEN")).upper().replace("Ü", "UE")
-    if farbe == "ROT":
-        return f"KI-Ampel ROT: {str(amp.get('begruendung', ''))[:120]}", 1.0, "ROT"
-    if farbe == "GELB":
-        return None, 0.5, "GELB"
-    return None, 1.0, "GRUEN"
+    return None
 
 
-# ---------------- Dateien ----------------
+def ki_farbe(amp, gruppe):
+    """gruppe: krypto / aktien / fallend. Alte Schluessel (long_btc, fallend_biti) gehen auch."""
+    if not amp:
+        return "keine", 1.0
+    alt = {"krypto": "long_btc", "fallend": "fallend_biti"}
+    farbe = str(amp.get(gruppe) or amp.get(alt.get(gruppe, "")) or "GRUEN").upper().replace("Ü", "UE")
+    return farbe, {"ROT": 0.0, "GELB": 0.5}.get(farbe, 1.0)
+
+
+# ---------------- Zustand ----------------
 def lade_zustand():
-    if ZUSTAND.exists():
-        return json.loads(ZUSTAND.read_text(encoding="utf-8"))
-    return {"position": None, "pause_bis": None, "einstiege": {"datum": "", "anzahl": 0}, "letzte_kerze": None}
+    z = json.loads(ZUSTAND.read_text(encoding="utf-8")) if ZUSTAND.exists() else {}
+    if z.get("version") != 3:  # Umbau: alten Zustand aufheben, neu anfangen
+        z = {"version": 3, "alt_v2": z}
+    z.setdefault("positionen", {})
+    z.setdefault("gesehen", {})
+    return z
 
 
 def speichere_zustand(z):
     ZUSTAND.write_text(json.dumps(z, indent=2, ensure_ascii=False, default=str) + "\n", encoding="utf-8")
 
 
-def bot_aktiv():
-    d = HIER / "BOT_AKTIV.txt"
-    return not d.exists() or d.read_text(encoding="utf-8").strip().lower().startswith("ja")
+def gruppe_von(sym, cfg):
+    for g in ("krypto", "aktien", "neutral", "invers_aktien", "invers_krypto"):
+        if sym in cfg[g]:
+            return g
+    return "aktien"
 
 
-def protokoll(now, preis, regime, aktion, grund, dedupe=False):
-    zeilen = PROTOKOLL.read_text(encoding="utf-8").splitlines()[1:] if PROTOKOLL.exists() else []
-    grund = str(grund).replace('"', "'")
-    neu = f"{now.astimezone(WIEN):%Y-%m-%d %H:%M},{preis:.0f},{regime},{aktion},\"{grund}\""
-    if dedupe and zeilen and zeilen[-1].split(",", 3)[-1] == neu.split(",", 3)[-1]:
-        return  # gleiche Meldung wie zuletzt -> nicht nochmal
-    zeilen.append(neu)
-    EREIGNISSE.append(aktion)
-    zeilen = zeilen[-1000:]
-    PROTOKOLL.write_text("zeit_wien,preis,trend,aktion,grund\n" + "\n".join(zeilen) + "\n", encoding="utf-8")
+def filter_ok(sym, cfg, filt):
+    g = gruppe_von(sym, cfg)
+    return {"krypto": filt["btc"] is True, "aktien": filt["spy"] is True, "neutral": True,
+            "invers_aktien": filt["spy"] is False, "invers_krypto": filt["btc"] is False}[g]
 
 
-def schreibe_trade(zeile):
-    neu = not TRADES.exists() or not TRADES.read_text(encoding="utf-8").strip()
-    with TRADES.open("a", encoding="utf-8", newline="") as d:
-        w = csv.DictWriter(d, fieldnames=TRADE_SPALTEN)
-        if neu:
-            w.writeheader()
-        w.writerow(zeile)
+def ampel_gruppe(sym, cfg):
+    g = gruppe_von(sym, cfg)
+    return {"krypto": "krypto", "aktien": "aktien", "neutral": "aktien"}.get(g, "fallend")
 
 
-def journal(eintrag):
-    alt = JOURNAL.read_text(encoding="utf-8") if JOURNAL.exists() else "# Journal\n\n"
-    kopf, _, rest = alt.partition("<!-- NEU -->")
-    JOURNAL.write_text(kopf + "<!-- NEU -->\n" + eintrag + "\n" + rest, encoding="utf-8")
+# ---------------- Trades abschliessen ----------------
+def trade_abschliessen(z, sym, ausstieg, grund, now, cfg):
+    t = z["positionen"].pop(sym)
+    e, s, m = float(t["einstieg"]), float(t["stop"]), float(t["menge"])
+    gebuehr = cfg["gebuehr_krypto"] * (e + ausstieg) * m if ist_krypto(sym) else 0.0
+    usd = (ausstieg - e) * m - gebuehr
+    r = usd / ((e - s) * m) if e > s and m > 0 else 0.0
+    alle = lies_csv(TRADES)
+    nr = len(alle) + 1
+    ein = zeit(t["zeit"]).astimezone(WIEN)
+    zeile = {"id": nr, "symbol": sym, "strategie": t["strategie"], "lern": "ja" if t.get("lern") else "nein",
+             "einstieg_zeit": t["zeit"], "einstieg": e, "stop": s, "ziel": t["ziel"], "menge": m,
+             "ausstieg_zeit": now.isoformat(), "ausstieg": round(ausstieg, 6), "grund": grund,
+             "gewinn_usd": round(usd, 2), "gebuehr_usd": round(gebuehr, 2), "r": round(r, 2),
+             "mfe_r": t.get("mfe_r", ""), "mae_r": t.get("mae_r", ""), "trend": t.get("trend", ""),
+             "rsi": t.get("rsi", ""), "atr_pct": t.get("atr_pct", ""), "uhrzeit_wien": f"{ein:%H:%M}",
+             "wochentag": TAGE[ein.weekday()], "ki": t.get("ki", ""), "news": t.get("news", ""),
+             "punkte": t.get("punkte", ""), "info": t.get("info", "")}
+    schreib_csv(TRADES, TRADE_SPALTEN, alle + [zeile])
+    journal(f"## #{nr} {kurz(sym)} {t['strategie']}{' (Lern-Trade)' if t.get('lern') else ''} | "
+            f"{now.astimezone(WIEN):%d.%m.%Y %H:%M} | {r:+.2f}R ({usd:+.2f} $)\n"
+            f"Einstieg {zahl(e)} · Stop {zahl(s)} · Ziel {zahl(t['ziel'])} · Ausstieg {zahl(ausstieg)} ({grund}) · "
+            f"MFE {t.get('mfe_r', '?')}R · MAE {t.get('mae_r', '?')}R · KI {t.get('ki', '?')}\n"
+            f"Warum rein: {t.get('info', '')}\n")
+    protokoll(now, "VERKAUF", f"{sym} {grund} {zahl(ausstieg)} -> {usd:+.2f} $ ({r:+.2f}R)")
+    if t["strategie"] == "START":
+        z["start_trade"] = "fertig"
+        melden(f"✅ Start-Trade hat funktioniert: Kauf, Stop und Verkauf bei Alpaca ok ({usd:+.2f} $). Der Bot läuft.")
+        return
+    melden(f"🔴 Verkauf {kurz(sym)} {dez(usd)} $ ({dez(r, 1)}R) · {grund}")
+    if r <= 0:
+        z.setdefault("sperre_wert", {})[sym] = (now + timedelta(hours=HART["sperre_nach_verlust_std"])).isoformat()
+    serie = 0
+    for x in reversed(lies_csv(TRADES)):
+        if x["strategie"] == "START":
+            continue
+        if float(x["r"]) <= 0:
+            serie += 1
+        else:
+            break
+    if serie >= HART["verlustserie"]:
+        z["pause_bis"] = (now + timedelta(hours=HART["pause_std"])).isoformat()
+        melden(f"⏸️ {serie} Verluste in Folge → 12 Std. Pause.")
 
 
-# ---------------- Ablauf ----------------
-def trade_abschliessen(z, ausstieg, grund, now, p, extra=""):
-    t = z["position"]
-    sym = t.get("symbol", POS_SYMBOL)
-    gebuehr = 0.0 if sym == INVERS else p["gebuehr_pro_seite"]  # Aktien: keine Gebuehr bei Alpaca
-    rb, rn, usd = rechner.ergebnis(t["einstieg"], t["stop"], ausstieg, t["menge"], gebuehr)
-    nr = sum(1 for _ in TRADES.open(encoding="utf-8")) if TRADES.exists() else 1
-    notiz = "; ".join(x for x in [extra, "Ziel beruehrt aber verpasst"
-                                  if t.get("ziel_beruehrt") and grund != "Ziel" else ""] if x)
-    schreibe_trade({"id": nr, "setup": t["setup"], "einstieg_zeit": t["zeit"], "einstieg": t["einstieg"],
-                    "stop": t["stop"], "ziel": t["ziel"], "menge": t["menge"], "ausstieg_zeit": now.isoformat(),
-                    "ausstieg": round(ausstieg, 2), "grund": grund, "r_brutto": rb, "r_netto": rn, "gewinn_usd": usd,
-                    "mae_r": t.get("mae_r", ""), "mfe_r": t.get("mfe_r", ""), "regime": t.get("regime", ""),
-                    "rsi_tag": t.get("rsi_tag", ""), "rsi_4h": t.get("rsi_4h", ""), "atr_pct": t.get("atr_pct", ""),
-                    "symbol": sym, "ki": t.get("ki", "keine"), "notiz": notiz})
-    journal(f"## #{nr} {t['setup']} ({sym}) | {now.astimezone(WIEN):%d.%m.%Y %H:%M} | {rn:+.2f}R netto ({usd:+.2f} $)\n"
-            f"| Einstieg | Stop | Ziel | Menge | Ausstieg | Grund | KI |\n|---|---|---|---|---|---|---|\n"
-            f"| {f(t['einstieg'])} | {f(t['stop'])} | {f(t['ziel'])} | {t['menge']} | {f(ausstieg)} | {grund} "
-            f"| {t.get('ki', 'keine')} |\n\n"
-            f"MAE {t.get('mae_r', '?')}R · MFE {t.get('mfe_r', '?')}R · Trend {t.get('regime', '?')} {notiz}\n\n"
-            f"Analyse: kommt am Sonntag in ANALYSEN.md (#{nr})\n")
-    z["position"] = None
-    if rn <= 0:  # nach einem Verlust nicht gleich wieder rein (Abkuehlzeit)
-        z["abkuehlen_bis"] = (now + timedelta(hours=float(p.get("nach_verlust_pause_std", 12)))).isoformat()
-    with TRADES.open(encoding="utf-8") as d:
-        zeilen = [x for x in csv.DictReader(d) if x.get("r_netto")]
-    if rechner.verlustserie(zeilen) >= rechner.HART["verlustserie_pause"]:
-        z["pause_bis"] = (now + timedelta(hours=24)).isoformat()
-    return f"{grund}: {f(ausstieg)} -> {rn:+.2f}R ({usd:+.2f} $)"
+def schluss_info(sym, seit):
+    """Wie wurde die Position bei Alpaca geschlossen? (Stop / Ziel)"""
+    q = {"status": "closed", "symbols": sym, "after": seit, "direction": "desc", "limit": 50}
+    for o in api("GET", f"{TRADING}/v2/orders?" + urllib.parse.urlencode(q)) or []:
+        if o.get("side") == "sell" and o.get("status") == "filled" and o.get("filled_avg_price"):
+            grund = {"stop": "Stop", "stop_limit": "Stop", "limit": "Ziel"}.get(o.get("type"), "Markt")
+            return float(o["filled_avg_price"]), grund
+    return None, "unbekannt (von Hand?)"
 
 
-def menge_von(pos):
-    if not pos or float(pos.get("market_value") or 0) < STAUB_USD:
-        return 0.0
-    return float(pos["qty"])
+def verkaufen(sym, offene):
+    for o in offene:
+        if o["side"] == "sell" and o["symbol"] in (sym, pos_sym(sym)):
+            api("DELETE", f"{TRADING}/v2/orders/{o['id']}", ok404=True)
+    time.sleep(2)
+    r = api("DELETE", f"{TRADING}/v2/positions/{urllib.parse.quote(pos_sym(sym))}", ok404=True)
+    fill = warte_auf_fill(r["id"], 20) if r and r.get("id") else None
+    return float(fill["filled_avg_price"]) if fill and fill.get("filled_avg_price") else None
 
 
+def stop_setzen(sym, menge, stop, assets, now, bruchteil=False):
+    if ist_krypto(sym):
+        a = assets.get(sym, {})
+        qty = runde_ab(menge * 0.997, a.get("schritt", 1e-9))  # Gebuehr wird in Krypto abgezogen
+        ps = a.get("preis_schritt", 0.01)
+        return order({"symbol": sym, "qty": str(qty), "side": "sell", "type": "stop_limit", "time_in_force": "gtc",
+                      "stop_price": preis_txt(stop, ps), "limit_price": preis_txt(stop * 0.995, ps),
+                      "client_order_id": f"bot-{now:%Y%m%d%H%M%S}-{pos_sym(sym)}-stop"})
+    qty = str(runde_ab(menge, 0.000001)) if bruchteil else str(int(menge))
+    return order({"symbol": sym, "qty": qty, "side": "sell", "type": "stop",
+                  "time_in_force": "day" if bruchteil else "gtc", "stop_price": preis_txt(stop),
+                  "client_order_id": f"bot-{now:%Y%m%d%H%M%S}-{sym}-stop"})
+
+
+# ---------------- Positionen verwalten ----------------
+def positionen_verwalten(z, cfg, now, alp_pos, offene, preise, inds, uhr, assets, konto):
+    boerse = bool(uhr.get("is_open"))
+    for sym, t in list(z["positionen"].items()):
+        ap = alp_pos.get(pos_sym(sym))
+        rest = max(2.0, 0.02 * float(t["einstieg"]) * float(t["menge"]))  # Krypto-Gebuehr laesst Staub uebrig
+        menge = float(ap["qty"]) if ap and abs(float(ap.get("market_value") or 0)) >= rest else 0.0
+        if menge <= 0:  # bei Alpaca weg -> Stop oder Ziel hat ausgeloest
+            aus, grund = schluss_info(sym, t["zeit"])
+            trade_abschliessen(z, sym, aus if aus else float(t["stop"]), grund, now, cfg)
+            continue
+        preis = preise.get(sym, (float(ap.get("current_price") or t["einstieg"]), now))[0]
+        e, s, ziel = float(t["einstieg"]), float(t["stop"]), float(t["ziel"])
+        risiko = e - s
+        k = inds.get((sym, t["art"]))
+        seit = [i for i, tt in enumerate(k["t"]) if tt >= zeit(t["zeit"]) - timedelta(hours=st.STUNDEN[t["art"]])] if k else []
+        hoch = max([k["h"][i] for i in seit] + [preis]) if k else preis
+        tief = min([k["l"][i] for i in seit] + [preis]) if k else preis
+        t["mfe_r"] = round(max(float(t.get("mfe_r") or 0), (hoch - e) / risiko), 2)
+        t["mae_r"] = round(min(float(t.get("mae_r") or 0), (tief - e) / risiko), 2)
+        t["menge"] = menge
+        aktie = not ist_krypto(sym)
+        kann = boerse or not aktie
+        gleicher_tag = aktie and zeit(t["zeit"]).astimezone(NY).date() == now.astimezone(NY).date()
+        ein = zeit(t["zeit"])
+        if aktie:  # fertige Handelstage nach dem Kauftag
+            kerzen_seit = sum(1 for tt in (k["t"] if k else []) if tt.astimezone(NY).date() > ein.astimezone(NY).date())
+        else:  # fertige Kerzen, die nach dem Kauf begonnen haben
+            kerzen_seit = sum(1 for tt in (k["t"] if k else []) if tt >= ein)
+        grund = None
+        if t["strategie"] == "START":
+            if now - zeit(t["zeit"]) >= timedelta(hours=1):
+                grund = "Start-Test fertig"
+        elif preis >= ziel and not t.get("bracket") and not (gleicher_tag and int(konto.get("daytrade_count", 0)) >= 2):
+            grund = "Ziel"
+        elif kerzen_seit >= int(t["zeit_kerzen"]) and not gleicher_tag:
+            grund = "Zeit"
+        elif preis <= s:
+            grund = "Stop (Markt)"
+        if grund and kann:
+            aus = verkaufen(sym, offene)
+            trade_abschliessen(z, sym, aus if aus else preis, grund, now, cfg)
+            continue
+        # Stop pruefen: bei Krypto offene Orders mit "BTC/USD" suchen, nicht "BTCUSD"
+        stops = [o for o in offene if o["side"] == "sell" and o["symbol"] in (sym, pos_sym(sym))]
+        if not stops and kann:
+            try:
+                o = stop_setzen(sym, menge, s, assets, now, bruchteil=t.get("bruchteil", False))
+                t["stop_order_id"] = o["id"]
+                if not t.get("bruchteil"):
+                    protokoll(now, "STOP", f"{sym}: Stop fehlte -> neu gesetzt bei {zahl(s)}")
+            except Exception as ex:
+                warnung(z, f"stop-{sym}", f"❌ Stop für {kurz(sym)} geht nicht: {str(ex)[:120]}", now)
+
+
+def unbekannte_positionen(z, cfg, now, alp_pos, offene, assets):
+    """Positionen bei Alpaca, die der Bot nicht kennt -> mit Stop 3 % absichern und uebernehmen."""
+    bekannte = {pos_sym(s) for s in z["positionen"]}
+    for ps, ap in alp_pos.items():
+        if ps in bekannte or abs(float(ap.get("market_value") or 0)) < 5:
+            continue
+        sym = next((s for s in cfg["krypto"] if pos_sym(s) == ps), ps)
+        if ap.get("asset_class") == "crypto" and "/" not in sym:
+            sym = ps[:-3] + "/USD"
+        e = float(ap["avg_entry_price"])
+        z["positionen"][sym] = {"symbol": sym, "strategie": "MANUELL", "art": "4h" if ist_krypto(sym) else "tag",
+                                "einstieg": e, "stop": round(e * 0.97, 6), "ziel": round(e * 1.06, 6),
+                                "menge": float(ap["qty"]), "zeit": now.isoformat(), "zeit_kerzen": 12,
+                                "bruchteil": not ist_krypto(sym) and float(ap["qty"]) % 1 != 0, "lern": False}
+        protokoll(now, "WARNUNG", f"{sym}: Position ohne Bot-Daten gefunden -> Stop 3 % darunter")
+
+
+# ---------------- Kaufen ----------------
+def kaufen(z, cfg, now, k, risiko, lern, konto, assets, offene_anz):
+    sym, preis = k["symbol"], k["preis"]
+    equity, cash = float(konto["equity"]), float(konto["cash"])
+    stop, ziel = k["stop"], k["ziel"]
+    dist = preis - stop
+    if dist <= 0:
+        return False, "Stop ueber Preis"
+    menge = equity * risiko / dist
+    menge = min(menge, cash * HART["max_cash_anteil"] / preis, equity * cfg["max_anteil_pro_position"] / preis)
+    cid = f"bot-{now:%Y%m%d%H%M%S}-{pos_sym(sym)}"
+    bracket = bruchteil = False
+    if ist_krypto(sym):
+        a = assets.get(sym, {})
+        qty = runde_ab(menge, a.get("schritt", 1e-9))
+        if float(qty) * preis < HART["min_krypto_usd"] or float(qty) < a.get("min_qty", 0):
+            return False, "Order zu klein"
+        o = order({"symbol": sym, "qty": str(qty), "side": "buy", "type": "limit", "time_in_force": "ioc",
+                   "limit_price": preis_txt(preis * 1.003, a.get("preis_schritt")), "client_order_id": cid})
+    else:
+        ganz = math.floor(menge)
+        if ganz >= 1:  # ganze Stueck -> Bracket-Order (Stop + Ziel gleich bei Alpaca)
+            bracket = True
+            o = order({"symbol": sym, "qty": str(ganz), "side": "buy", "type": "limit", "time_in_force": "gtc",
+                       "limit_price": preis_txt(preis * 1.002), "order_class": "bracket",
+                       "take_profit": {"limit_price": preis_txt(ziel)}, "stop_loss": {"stop_price": preis_txt(stop)},
+                       "client_order_id": cid})
+        else:  # Bruchteil -> Kauf, dann Stop (Bruchteile koennen keine Bracket-Order)
+            if not assets.get(sym, {}).get("bruchteil"):
+                return False, "keine Bruchteile moeglich"
+            bruchteil = True
+            qty = runde_ab(menge, 0.001)
+            if float(qty) * preis < 5:
+                return False, "Order zu klein"
+            o = order({"symbol": sym, "qty": str(qty), "side": "buy", "type": "limit", "time_in_force": "day",
+                       "limit_price": preis_txt(preis * 1.002), "client_order_id": cid})
+    fill = warte_auf_fill(o["id"], 20)
+    if not fill or float(fill.get("filled_qty") or 0) <= 0:
+        return False, f"Kauf nicht ausgefuehrt ({fill and fill.get('status')})"
+    einstieg, gekauft = float(fill["filled_avg_price"]), float(fill["filled_qty"])
+    stop_id = None
+    if bracket:
+        legs = fill.get("legs") or []
+        stop_id = next((x["id"] for x in legs if x.get("type") in ("stop", "stop_limit")), None)
+    else:
+        try:
+            stop_id = stop_setzen(sym, gekauft, stop, assets, now, bruchteil=bruchteil)["id"]
+        except Exception as ex:  # nie ohne Stop: sofort wieder verkaufen
+            api("DELETE", f"{TRADING}/v2/positions/{urllib.parse.quote(pos_sym(sym))}", ok404=True)
+            melden(f"❌ Stop für {kurz(sym)} ging nicht → sofort verkauft. {str(ex)[:100]}", prio="high")
+            return False, f"Stop ging nicht: {ex}"
+    z["positionen"][sym] = {
+        "symbol": sym, "strategie": k["strategie"], "lern": lern, "art": k["art"], "einstieg": einstieg,
+        "stop": stop, "ziel": ziel, "menge": gekauft, "zeit": now.isoformat(), "zeit_kerzen": k["zeit_kerzen"],
+        "stop_order_id": stop_id, "bracket": bracket, "bruchteil": bruchteil, "trend": k.get("trend"),
+        "rsi": k.get("rsi"), "atr_pct": k.get("atr_pct"), "ki": k.get("ki"), "news": k.get("news", ""),
+        "punkte": k.get("punkte"), "info": k.get("info"), "kerze_t": k.get("kerze_t")}
+    tag = z["tag"]
+    if k["strategie"] != "START":
+        tag["einstiege"] += 1
+    extra = " (Lern-Trade, halbes Risiko)" if lern else ""
+    if k["strategie"] == "START":
+        so = api("GET", f"{TRADING}/v2/orders/{stop_id}", ok404=True) if stop_id else None
+        ok = ("Stop bei Alpaca ✓" if so and so.get("status") in ("new", "accepted", "pending_new", "held")
+              else "⚠️ Stop nicht gefunden")
+        melden(f"🧪 Start-Trade: Kauf {kurz(sym)} {zahl(einstieg)} $ ({gekauft * einstieg:.0f} $) · {ok}. "
+               f"Verkauf in 1 Std.")
+    else:
+        melden(f"🟢 Kauf {kurz(sym)} {zahl(einstieg)} $ · Stop {zahl(stop)} · Ziel {zahl(ziel)}{extra}")
+    protokoll(now, "KAUF", f"{sym} {k['strategie']}{extra}: {gekauft:g} zu {zahl(einstieg)}, Stop {zahl(stop)}, "
+                           f"Ziel {zahl(ziel)}, Punkte {k.get('punkte')}, KI {k.get('ki')}")
+    journal(f"## Einstieg {kurz(sym)} {k['strategie']}{extra} | {now.astimezone(WIEN):%d.%m.%Y %H:%M}\n"
+            f"{gekauft:g} zu {zahl(einstieg)} · Stop {zahl(stop)} · Ziel {zahl(ziel)} · {k.get('info', '')} · "
+            f"Markt-Filter {k.get('trend')} · RSI {k.get('rsi')} · ATR {k.get('atr_pct')} % · KI {k.get('ki')}\n")
+    return True, ""
+
+
+# ---------------- Schatten-Trades ----------------
+def schatten_neu(z, k, now, warum):
+    zeilen = lies_csv(SCHATTEN)
+    zeilen.append({"id": len(zeilen) + 1, "schluessel": k["schluessel"], "symbol": k["symbol"],
+                   "strategie": k["strategie"], "zeit": now.isoformat(), "kerze_t": k["kerze_t"],
+                   "einstieg": k["preis"], "stop": round(k["stop"], 6), "ziel": round(k["ziel"], 6),
+                   "zeit_kerzen": k["zeit_kerzen"], "warum_nicht": warum[:120], "status": "offen",
+                   "ausstieg": "", "ausstieg_zeit": "", "r": ""})
+    schreib_csv(SCHATTEN, SCH_SPALTEN, zeilen)
+
+
+def schatten_update(inds, cfg):
+    zeilen, fertig = lies_csv(SCHATTEN), []
+    for s in zeilen:
+        if s["status"] != "offen":
+            continue
+        art = st.ART.get(s["strategie"], "tag")
+        k = inds.get((s["symbol"], art))
+        if not k:
+            continue
+        e, stop, ziel = float(s["einstieg"]), float(s["stop"]), float(s["ziel"])
+        n = 0
+        for i, t in enumerate(k["t"]):
+            if t <= zeit(s["kerze_t"]):
+                continue
+            n += 1
+            aus = None
+            if k["l"][i] <= stop:
+                aus, g = min(stop, k["o"][i]), "Stop"
+            elif k["h"][i] >= ziel:
+                aus, g = ziel, "Ziel"
+            elif n >= int(s["zeit_kerzen"]):
+                aus, g = k["c"][i], "Zeit"
+            if aus is not None:
+                fee = cfg["gebuehr_krypto"] if ist_krypto(s["symbol"]) else cfg["slippage_aktie"]
+                s.update(status=g, ausstieg=round(aus, 6), ausstieg_zeit=t.isoformat(),
+                         r=round(((aus - e) - fee * (e + aus)) / (e - stop), 2))
+                fertig.append(s)
+                break
+    if fertig:
+        schreib_csv(SCHATTEN, SCH_SPALTEN, zeilen)
+    return fertig
+
+
+# ---------------- Bericht ----------------
+def statistik(zeilen):
+    rr = [float(z["r"]) for z in zeilen]
+    if not rr:
+        return "0 Trades"
+    g = [x for x in rr if x > 0]
+    v = [x for x in rr if x <= 0]
+    pf = sum(g) / abs(sum(v)) if v and sum(v) else float("inf")
+    usd = sum(float(z["gewinn_usd"]) for z in zeilen)
+    return (f"{len(rr)} Trades · Treffer {len(g) / len(rr):.0%} · Schnitt {sum(rr) / len(rr):+.2f}R · "
+            f"Summe {sum(rr):+.1f}R · PF {pf:.2f} · {usd:+.2f} $")
+
+
+def stats_text():
+    zeilen = [x for x in lies_csv(TRADES) if x["strategie"] != "START"]
+    out = [f"GESAMT: {statistik(zeilen)}",
+           f"  normal: {statistik([x for x in zeilen if x['lern'] == 'nein'])}",
+           f"  Lern-Trades: {statistik([x for x in zeilen if x['lern'] == 'ja'])}"]
+    for s in sorted({x["strategie"] for x in zeilen}):
+        out.append(f"  {s}: {statistik([x for x in zeilen if x['strategie'] == s])}")
+    sch = [x for x in lies_csv(SCHATTEN) if x["status"] != "offen"]
+    out.append(f"Schatten-Trades (nicht genommen): {len(sch)} fertig, Summe "
+               f"{sum(float(x['r']) for x in sch):+.1f}R")
+    return out
+
+
+def bericht(z, cfg, now, konto, filt, kandidaten, amp):
+    eq = float(konto["equity"])
+    start = z.get("start", {})
+    s_eq = start.get("equity", 500.0)
+    zeilen = [f"# Bericht – Trading-Bot v3\n",
+              f"Stand: **{now.astimezone(WIEN):%d.%m.%Y %H:%M}** Wien · Paper-Konto · automatisch geschrieben\n",
+              "| | Wert |", "|---|---|",
+              f"| Konto | **{zahl(eq)} $** ({eq / s_eq - 1:+.1%} seit Start {start.get('datum', '?')}) |",
+              f"| Ziel (+50 % in 1 Monat, sehr hoch) | {zahl(s_eq * 1.5)} $ |"]
+    for name, key in (("Bitcoin halten", "btc"), ("S&P 500 (SPY) halten", "spy")):
+        if start.get(key) and z.get("letzte_preise", {}).get(key):
+            zeilen.append(f"| {name} | {z['letzte_preise'][key] / start[key] - 1:+.1%} |")
+    zeilen += [f"| Markt-Filter | Bitcoin über 200-Tage-Schnitt: {filt['btc']} · SPY: {filt['spy']} |",
+               f"| KI-Ampel | {('Krypto ' + ki_farbe(amp, 'krypto')[0] + ' · Aktien ' + ki_farbe(amp, 'aktien')[0] + ' · fallend ' + ki_farbe(amp, 'fallend')[0]) if amp else 'keine gültige'} |",
+               f"| Bot | {'an' if bot_aktiv() else 'AUS (BOT_AKTIV.txt)'} |", "",
+               "## Offene Positionen", ""]
+    if z["positionen"]:
+        zeilen += ["| Wert | Strategie | Einstieg | Stop | Ziel | seit |", "|---|---|---|---|---|---|"]
+        for s, t in z["positionen"].items():
+            zeilen.append(f"| {s} | {t['strategie']}{' (Lern)' if t.get('lern') else ''} | {zahl(t['einstieg'])} | "
+                          f"{zahl(t['stop'])} | {zahl(t['ziel'])} | {zeit(t['zeit']).astimezone(WIEN):%d.%m. %H:%M} |")
+    else:
+        zeilen.append("keine")
+    zeilen += ["", "## Trades", "```", *stats_text(), "```", "",
+               "## Beste Kandidaten gerade (Rangliste)", "",
+               "| Wert | Strategie | Signal | Punkte | Info |", "|---|---|---|---|---|"]
+    for k in sorted(kandidaten, key=lambda x: -x["punkte_lern"])[:10]:
+        zeilen.append(f"| {k['symbol']} | {k['strategie']} | {'JA' if k['signal'] else 'nein'} | "
+                      f"{k['punkte_lern']:.2f} | {k['info']} |")
+    zeilen += ["", "_Ehrlich: Ein Urteil gibt es erst nach ca. 30 Trades. +50 % im Monat schaffen auch gute Bots "
+               "praktisch nie – das Risiko wird dafür nicht erhöht._", ""]
+    BERICHT.write_text("\n".join(zeilen), encoding="utf-8")
+
+
+# ---------------- Hauptlauf ----------------
 def lauf(nur_pruefen=False):
     now = datetime.now(timezone.utc)
     DATEN.mkdir(exist_ok=True)
-    p = rechner.lade_parameter()
+    cfg = lade_config()
     z = lade_zustand()
+    try:
+        _lauf(z, cfg, now, nur_pruefen)
+    finally:
+        if not nur_pruefen:
+            speichere_zustand(z)  # auch bei einem Fehler: gekaufte Positionen nie vergessen
+
+
+def _lauf(z, cfg, now, nur_pruefen):
+    wien = now.astimezone(WIEN)
+
+    # Lebenszeichen: war der Bot lange weg?
+    if LEBEN.exists() and not nur_pruefen:
+        try:
+            alt = zeit(json.loads(LEBEN.read_text(encoding="utf-8"))["zeit"])
+            if now - alt > timedelta(hours=3):
+                melden(f"⚠️ Bot war {(now - alt).total_seconds() / 3600:.0f} Std. nicht aktiv. Jetzt läuft er wieder.")
+        except Exception:
+            pass
 
     konto = api("GET", f"{TRADING}/v2/account")
     if not str(konto.get("account_number", "")).startswith("PA"):
-        print("STOPP: Das ist kein Paper-Konto. Bot handelt nicht.")
+        melden("🛑 STOPP: Das ist kein Paper-Konto! Bot handelt nicht.", prio="urgent")
         sys.exit(1)
     equity, cash = float(konto["equity"]), float(konto["cash"])
+    last_eq = float(konto.get("last_equity") or equity)
     uhr = api("GET", f"{TRADING}/v2/clock")
+    boerse = bool(uhr.get("is_open"))
     bis_schluss = (zeit(uhr["next_close"]) - now) if uhr.get("next_close") else timedelta(0)
-    boerse_ok = bool(uhr.get("is_open")) and bis_schluss >= MIN_BIS_SCHLUSS
+    aktien_kauf_ok = boerse and bis_schluss >= timedelta(minutes=20)
 
-    pos_btc = api("GET", f"{TRADING}/v2/positions/{POS_SYMBOL}", ok404=True)
-    pos_biti = api("GET", f"{TRADING}/v2/positions/{INVERS}", ok404=True)
-    m_btc, m_biti = menge_von(pos_btc), menge_von(pos_biti)
-    offen = api("GET", f"{TRADING}/v2/orders?status=open&limit=100")
-    preis = letzter_preis()
-    tage = kerzen("1Day", 70, now)
-    h4 = kerzen("4Hour", 12, now)
-    print(f"Konto {konto['account_number']} | Equity {equity:,.2f} $ | Cash {cash:,.2f} $ | BTC {m_btc} | "
-          f"BITI {m_biti} | BTC-Preis {preis:,.0f} | US-Boerse {'offen' if uhr.get('is_open') else 'zu'}")
+    heute = f"{wien:%Y-%m-%d}"
+    if (z.get("tag") or {}).get("datum") != heute:
+        z["tag"] = {"datum": heute, "einstiege": 0, "lern": False, "start_equity": equity}
+    kw = f"{wien:%G-W%V}"
+    if (z.get("woche") or {}).get("kw") != kw:
+        z["woche"] = {"kw": kw, "equity": equity}
+    z.setdefault("start", {"datum": f"{wien:%d.%m.%Y}", "equity": round(equity, 2)})
 
-    t = z["position"]
-    if t and "symbol" not in t:
-        t["symbol"] = POS_SYMBOL
-    trade = None
-    if t:
-        if t["symbol"] == INVERS:
-            trade = {"setup": t["setup"], "richtung": "short", "einstieg": t["einstieg_btc"], "stop": t["stop_btc"],
-                     "ziel": t["ziel_btc"], "zeit": zeit(t["zeit"])}
-        else:
-            trade = {"setup": t["setup"], "einstieg": t["einstieg"], "stop": t["stop"], "ziel": t["ziel"],
-                     "zeit": zeit(t["zeit"])}
-    hat = {POS_SYMBOL: m_btc, INVERS: m_biti}
-    a = rechner.analyse(tage, h4, now, p, equity, cash, preis, trade if (t and hat[t["symbol"]] > 0) else None)
-    for zeile in a["text"]:
-        print(zeile)
-    regime = a.get("regime", "?")
-    grund = " | ".join(a["gruende"])
+    assets = assets_laden(z, cfg, now)
+    krypto = [s for s in cfg["krypto"] if assets.get(s, {}).get("ok")]
+    aktien_alle = cfg["aktien"] + cfg["neutral"] + cfg["invers_aktien"] + cfg["invers_krypto"]
+    aktien = [s for s in aktien_alle if assets.get(s, {}).get("ok")]
+    if "SPY" not in aktien:
+        aktien.append("SPY")
+
+    alp_pos = {p["symbol"]: p for p in api("GET", f"{TRADING}/v2/positions")}
+    offene = api("GET", f"{TRADING}/v2/orders?status=open&limit=500")
+
+    # ---- Daten ----
+    daten_ok, inds, preise = True, {}, {}
+    try:
+        roh = {"1h": krypto_kerzen(krypto, "1Hour", now - timedelta(days=6)),
+               "4h": krypto_kerzen(krypto, "4Hour", now - timedelta(days=45)),
+               "kt": krypto_kerzen(krypto, "1Day", now - timedelta(days=320)),
+               "tag": aktien_kerzen(aktien, now - timedelta(days=380), now - timedelta(minutes=20))}
+        for art, daten in roh.items():
+            stunden = {"1h": 1, "4h": 4, "kt": 24, "tag": 24}[art]
+            for s, k in daten.items():
+                k = fertige(k, stunden, now)
+                if len(k) >= 30:
+                    inds[(s, "tag" if art == "kt" else art)] = st.vorberechnen(k)
+        preise = letzte_preise(krypto, aktien)
+    except Exception as e:
+        daten_ok = False
+        warnung(z, "daten", f"⚠️ Daten-Fehler, kaufe nichts: {str(e)[:150]}", now)
+        protokoll(now, "FEHLER", f"Daten: {e}")
+
+    filt = {"btc": st.ueber_200(inds.get(("BTC/USD", "tag"))), "spy": st.ueber_200(inds.get(("SPY", "tag")))}
+    z["letzte_preise"] = {"btc": preise.get("BTC/USD", (None,))[0], "spy": preise.get("SPY", (None,))[0]}
+    for key, sym in (("btc", "BTC/USD"), ("spy", "SPY")):
+        if not z["start"].get(key) and z["letzte_preise"][key]:
+            z["start"][key] = z["letzte_preise"][key]
     amp = ki_ampel(now)
-    print(f"AKTION: {a['aktion']} {grund}")
-    print("KI-Ampel: " + (f"steigt {amp.get('long_btc')} | faellt {amp.get('fallend_biti')} | "
-                          f"{str(amp.get('begruendung', ''))[:100]}" if amp else "keine gueltige -> nur Regeln"))
+    print(f"Konto {konto['account_number']} | Equity {equity:.2f} $ | Cash {cash:.2f} $ | Positionen "
+          f"{list(z['positionen'])} | Boerse {'offen' if boerse else 'zu'} | Filter {filt} | Daten {len(inds)}")
+
+    # ---- alle Werte bewerten ----
+    passt = {}
+    if BT_ERGEBNIS.exists():
+        try:
+            passt = {k: v.get("bestanden") for k, v in json.loads(BT_ERGEBNIS.read_text())["strategien"].items()}
+        except Exception:
+            passt = {}
+    kandidaten = []
+    for name, s in cfg["strategien"].items():
+        art = st.ART[name]
+        werte = krypto if st.GRUPPE[art] == "krypto" else [x for x in aktien if x in aktien_alle]
+        for sym in werte:
+            ind = inds.get((sym, art))
+            if not ind:
+                continue
+            i = len(ind["c"]) - 1
+            sg = st.signal(name, ind, i, s)
+            if not sg:
+                continue
+            p_alt = preise.get(sym)
+            alt_min = (now - p_alt[1]).total_seconds() / 60 if p_alt else 9999
+            preis = p_alt[0] if p_alt else ind["c"][i]
+            stop, ziel = st.ausstieg_preise(preis, sg["atr"], s)
+            tag_ind = inds.get((sym, "tag"))
+            kandidaten.append({
+                "symbol": sym, "strategie": name, "art": art, "signal": sg["signal"], "info": sg["info"],
+                "preis": preis, "stop": stop, "ziel": ziel, "zeit_kerzen": s["zeit_kerzen"],
+                "kerze_t": ind["t"][i].isoformat(), "schluessel": f"{sym}|{name}|{ind['t'][i]:%Y%m%d%H}",
+                "rsi": sg["rsi"], "atr_pct": round(sg["atr"] / preis * 100, 2), "frisch": alt_min <= HART["daten_max_alter_min"],
+                "filter": filter_ok(sym, cfg, filt), "strategie_ok": bool(s.get("aktiv")) and bool(passt.get(name)),
+                "trend": "AUF" if filter_ok(sym, cfg, filt) else "AB",
+                "punkte": st.punkte(sg, ind, i, tag_ind, float(s.get("gewicht", 1))),
+                "punkte_lern": st.punkte(sg, ind, i, tag_ind, 1.0, lern=True), "staerke": sg["staerke"]})
+    signale = [k for k in kandidaten if k["signal"]]
+    print(f"{len(kandidaten)} Bewertungen, {len(signale)} Signale: "
+          + ", ".join(f"{k['symbol']} {k['strategie']}" for k in signale[:15]))
     if nur_pruefen:
+        for k in sorted(kandidaten, key=lambda x: -x["punkte_lern"])[:15]:
+            print(f"  {k['symbol']:9} {k['strategie']:16} Signal {k['signal']!s:5} Punkte {k['punkte']:.2f} "
+                  f"nah {k['punkte_lern']:.2f} Filter {k['filter']} | {k['info']}")
         print("(Pruef-Modus: keine Orders, nichts gespeichert)")
         return
 
-    exp = experiment.start(now, equity, preis)
-    try:
-        handeln(z, t, a, p, now, preis, regime, grund, equity, cash, hat, pos_btc, offen, tage, h4,
-                uhr, boerse_ok, amp)
-    finally:
-        try:  # Experiment nachfuehren - darf den Bot nie stoppen
-            fertig = experiment.schatten_update(h4, now, p)
-            for s in fertig:
-                protokoll(now, preis, regime, "SCHATTEN",
-                          f"#{s['id']} {s['setup']} (gesperrt: {s['sperre'][:50]}): {s['status']} {float(s['r']):+.2f}R")
-            for pr in experiment.prognose_update(now, preis, AMPEL):
-                protokoll(now, preis, regime, "PROGNOSE",
-                          f"KI sagte '{pr['richtung']}', BTC {pr['aenderung']} -> {pr['ergebnis']}")
-            k = a.get("letzte_kerze")
-            neu_bar = k is not None and (not z.get("bericht_kerze") or zeit(z["bericht_kerze"]) < k)
-            amp_id = amp.get("erstellt") if amp else None
-            neue_ampel = amp_id != z.get("bericht_ampel")
-            z["bericht_ampel"] = amp_id
-            if EREIGNISSE or fertig or neu_bar or neue_ampel or not experiment.BERICHT.exists():
-                experiment.verlauf_update(now, equity, preis, exp)
-                experiment.bericht(now, equity, preis, exp, z, amp, bot_aktiv())
-                if k is not None:
-                    z["bericht_kerze"] = k.isoformat()
-                speichere_zustand(z)
-        except Exception as e:
-            print(f"WARNUNG Experiment/Bericht: {e!r}")
+    # ---- offene Positionen ----
+    unbekannte_positionen(z, cfg, now, alp_pos, offene, assets)
+    positionen_verwalten(z, cfg, now, alp_pos, offene, preise, inds, uhr, assets, konto)
 
-
-def handeln(z, t, a, p, now, preis, regime, grund, equity, cash, hat, pos_btc, offen, tage, h4, uhr, boerse_ok, amp):
-    # --- Fall 0: Position, die der Bot nicht kennt -> BTC absichern; BITI melden ---
-    if not t and (hat[POS_SYMBOL] > 0 or hat[INVERS] > 0):
-        if hat[POS_SYMBOL] > 0:
-            einstieg = float(pos_btc["avg_entry_price"])
-            stop = round(einstieg * 0.97)
-            z["position"] = t = {"symbol": POS_SYMBOL, "setup": "MANUELL", "einstieg": einstieg, "stop": stop,
-                                 "ziel": round(einstieg + p["ziel_r"] * (einstieg - stop)), "menge": hat[POS_SYMBOL],
-                                 "zeit": now.isoformat(), "stop_order_id": None, "ki": "keine"}
-            trade = {"setup": "MANUELL", "einstieg": einstieg, "stop": stop, "ziel": t["ziel"], "zeit": now}
-            a = rechner.analyse(tage, h4, now, p, equity, cash, preis, trade)
-            grund = "BTC-Position ohne Bot-Daten gefunden, Stop 3 % darunter"
-        else:
-            protokoll(now, preis, regime, "WARNUNG", "BITI-Position ohne Bot-Daten - bitte von Hand pruefen", True)
-            speichere_zustand(z)
-            return
-
-    # --- Fall 1: Position offen ---
-    if t and hat[t["symbol"]] > 0:
-        sym = t["symbol"]
-        menge = hat[sym]
-        t["mfe_r"], t["mae_r"] = a.get("mfe_r"), a.get("mae_r")
-        t["ziel_beruehrt"] = t.get("ziel_beruehrt") or a.get("ziel_beruehrt", False)
-        meine = (SYMBOL, POS_SYMBOL) if sym == POS_SYMBOL else (INVERS,)
-        stops = [o for o in offen if o["side"] == "sell" and o["symbol"] in meine]
-        if a["aktion"] in ("VERKAUFEN_ZIEL", "VERKAUFEN_ZEIT", "PRUEFEN_STOP"):
-            if sym == INVERS and not uhr.get("is_open"):
-                grund = f"{a['aktion']}, aber US-Boerse zu -> verkauft bei Oeffnung (Stop bleibt aktiv)"
-            else:
-                for o in stops:
-                    api("DELETE", f"{TRADING}/v2/orders/{o['id']}", ok404=True)
-                time.sleep(2)
-                schluss = api("DELETE", f"{TRADING}/v2/positions/{sym}")
-                fill = warte_auf_fill(schluss["id"]) if schluss and schluss.get("id") else None
-                if fill and fill.get("filled_avg_price"):
-                    ausstieg = float(fill["filled_avg_price"])
-                else:
-                    ausstieg = biti_preis() if sym == INVERS else preis
-                g = {"VERKAUFEN_ZIEL": "Ziel", "VERKAUFEN_ZEIT": "Zeitstop", "PRUEFEN_STOP": "Stop (Markt)"}[a["aktion"]]
-                grund = trade_abschliessen(z, ausstieg, g, now, p)
-        elif not stops:
-            sl = round(t["stop"] * (1 - p["stop_limit_abstand"])) if sym == POS_SYMBOL else None
-            o = setze_stop(sym, menge, t["stop"], sl, now)
-            t["stop_order_id"] = o["id"]
-            grund = (grund + " | " if grund else "") + f"{sym}-Stop fehlte -> neu gesetzt"
-        speichere_zustand(z)
-        if a["aktion"] != "HALTEN" or "Stop" in grund:
-            protokoll(now, preis, regime, a["aktion"], grund, dedupe=True)
-        return
-
-    # --- Fall 2: Position weg, Bot hatte aber eine -> Stop wurde ausgeloest ---
-    if t:
-        ausstieg, g = t["stop"], "unbekannt (von Hand geschlossen?)"
-        if t.get("stop_order_id"):
-            so = api("GET", f"{TRADING}/v2/orders/{t['stop_order_id']}", ok404=True)
-            if so and so.get("status") == "filled":
-                ausstieg, g = float(so["filled_avg_price"]), "Stop"
-        grund = trade_abschliessen(z, ausstieg, g, now, p)
-        speichere_zustand(z)
-        protokoll(now, preis, regime, "GESCHLOSSEN", grund)
-        return
-
-    # --- Fall 3: keine Position ---
-    kandidat, quelle = None, None
-    atr = a.get("atr") or 0.0
-
-    # 3a) S1-Signal von vorher, das auf die US-Boerse wartet
-    w = z.get("s1_wartet")
-    if w:
-        if zeit(w["bis"]) < now:
-            z["s1_wartet"] = None
-            protokoll(now, preis, regime, "NICHTS", "S1-Signal verfallen (US-Boerse war zu lange zu)")
-        elif boerse_ok:
-            z["s1_wartet"] = None
-            dist = w["stop"] - preis
-            ok, txt = rechner.stop_ok(dist, preis, atr, p)
-            if preis > w["signal_preis"] + 0.25 * atr:
-                protokoll(now, preis, regime, "NICHTS", "S1 verworfen: Bitcoin ist seit dem Signal gestiegen")
-            elif not ok:
-                protokoll(now, preis, regime, "NICHTS", f"S1 verworfen: {txt}")
-            else:
-                kandidat = {"aktion": "KAUFEN", "setup": "S1", "richtung": "short", "stop": w["stop"],
-                            "dist_pct": dist / preis, "risiko_anteil": w["risiko_anteil"],
-                            "ziel_vorlaeufig": round(preis - p["ziel_r"] * dist)}
-                quelle = "wartend"
-
-    # 3b) neues Signal: nur einmal pro fertiger 4h-Kerze pruefen
-    kerze = a.get("letzte_kerze")
-    neue_kerze = kerze is not None and (not z.get("letzte_kerze") or zeit(z["letzte_kerze"]) < kerze)
-    if neue_kerze:
-        z["letzte_kerze"] = kerze.isoformat()
-        if a["aktion"] == "KAUFEN":
-            kandidat, quelle = a, "neu"
-            z["s1_wartet"] = None  # neues Signal ersetzt ein wartendes
-    if kandidat is None:
-        if neue_kerze:
-            protokoll(now, preis, regime, "NICHTS",
-                      grund + (" | S1 wartet auf US-Boerse" if z.get("s1_wartet") else ""))
-        speichere_zustand(z)
-        return
-
-    # 3c) Sperren pruefen
-    s1 = kandidat["setup"] == "S1"
-    heute = f"{now:%Y-%m-%d}"
-    if z["einstiege"].get("datum") != heute:
-        z["einstiege"] = {"datum": heute, "anzahl": 0}
-    sperre, schatten, faktor, ki = None, False, 1.0, "keine"
+    # ---- Sperren ----
+    sperre = None
     if not bot_aktiv():
         sperre = "Bot ausgeschaltet (BOT_AKTIV.txt)"
+    elif equity < HART["notbremse"]:
+        sperre = f"NOTBREMSE: Konto {equity:.0f} $ < {HART['notbremse']:.0f} $"
+        warnung(z, "notbremse", f"🛑 Notbremse: Konto {zahl(equity)} $ (unter 425 $). Keine neuen Trades. "
+                                f"Bitte sag Claude, wie es weitergehen soll.", now, stunden=24)
+    elif last_eq > 0 and equity / last_eq - 1 <= HART["tageslimit"]:
+        sperre = f"Tageslimit: {equity / last_eq - 1:.1%} heute"
+        warnung(z, "tageslimit", f"⏸️ Heute {equity / last_eq - 1:.1%} → keine neuen Trades bis morgen.", now, 12)
     elif z.get("pause_bis") and zeit(z["pause_bis"]) > now:
         sperre = f"Pause bis {zeit(z['pause_bis']).astimezone(WIEN):%d.%m. %H:%M} (Verlustserie)"
-    elif z.get("abkuehlen_bis") and zeit(z["abkuehlen_bis"]) > now:
-        sperre = f"Abkuehlen nach Verlust bis {zeit(z['abkuehlen_bis']).astimezone(WIEN):%d.%m. %H:%M}"
-    elif equity < rechner.HART["notbremse_equity"]:
-        sperre = f"NOTBREMSE: Konto {equity:.0f} $ < {rechner.HART['notbremse_equity']:.0f} $"
-    elif z["einstiege"]["anzahl"] >= rechner.HART["max_einstiege_tag"]:
-        sperre = "heute schon 2 Einstiege"
-    if not sperre:
-        s_ki, faktor, ki = ki_check(amp, "fallend_biti" if s1 else "long_btc", now)
-        if s_ki:
-            sperre, schatten = s_ki, True
-    if not sperre and s1 and not boerse_ok:
-        z["s1_wartet"] = {"stop": kandidat["stop"], "signal_preis": round(preis),
-                          "risiko_anteil": kandidat["risiko_anteil"], "bis": (now + S1_WARTEN).isoformat()}
-        sperre = "S1-Signal (Bitcoin faellt), US-Boerse zu -> wartet auf Oeffnung (max. 20 Std.)"
-    if not sperre:
-        news = warn_news(now)
-        if news:
-            sperre = f"Warn-News: {news}"
-    if not sperre:  # Menge ausrechnen (bei KI GELB halbes Risiko)
-        if s1:
-            b = biti_preis()
-            b_stop = round(b * (1 - kandidat["dist_pct"]), 2)
-            stueck = math.floor(min(equity * kandidat["risiko_anteil"] * faktor / (b - b_stop),
-                                    cash * p["max_cash_anteil"] / b))
-            if stueck < 1 or stueck * b < rechner.HART["min_notional"]:
-                sperre = f"S1: zu wenig Geld fuer 1 BITI ({b:.2f} $)"
-            else:
-                kandidat["menge"] = stueck
+    elif not daten_ok:
+        sperre = "Daten-Fehler"
+    elif ki_sperrzeit(amp, now):
+        sperre = ki_sperrzeit(amp, now)
+
+    # ---- Start-Trade (einmalig nach dem Umbau) ----
+    if not z.get("start_trade") and not sperre and "BTC/USD" in krypto and "BTC/USD" not in z["positionen"]:
+        p = preise.get("BTC/USD", (None,))[0]
+        if p:
+            k = {"symbol": "BTC/USD", "strategie": "START", "art": "1h", "preis": p, "stop": p * 0.97,
+                 "ziel": p * 1.5, "zeit_kerzen": 99, "info": "Test, ob Kauf + Stop + Verkauf klappen", "ki": "-"}
+            usd = max(cfg["start_trade_usd"], assets.get("BTC/USD", {}).get("min_qty", 0) * p * 1.1, 11)
+            menge_risiko = usd / p * (p - k["stop"]) / equity
+            ok, warum = kaufen(z, cfg, now, k, menge_risiko, False, konto, assets, len(z["positionen"]))
+            z["start_trade"] = "offen" if ok else f"fehler: {warum}"
+            if not ok:
+                melden(f"❌ Start-Trade ging nicht: {warum}", prio="high")
+
+    # ---- neue Trades: beste Signale zuerst ----
+    def blockiert(k):
+        sym = k["symbol"]
+        if sym in z["positionen"]:
+            return "schon drin"
+        if len(z["positionen"]) >= HART["max_positionen"]:
+            return "max. 3 Positionen"
+        if sym in cfg.get("gesperrte_werte", []) or sym in ((amp or {}).get("gesperrt") or []):
+            return "Wert gesperrt"
+        sw = z.get("sperre_wert", {}).get(sym)
+        if sw and zeit(sw) > now:
+            return "2 Std. Pause nach Verlust"
+        if not k["frisch"]:
+            return "Kurs aelter als 1 Std."
+        if not ist_krypto(sym) and not aktien_kauf_ok:
+            return "US-Boerse zu"
+        if not ist_krypto(sym) and int(konto.get("daytrade_count", 0)) >= 3:
+            return "PDT-Regel: 3 Daytrades"
+        if z["tag"]["einstiege"] >= cfg["max_einstiege_tag"]:
+            return "max. Einstiege heute"
+        farbe, faktor = ki_farbe(amp, ampel_gruppe(sym, cfg))
+        if faktor == 0:
+            return f"KI-Ampel ROT ({ampel_gruppe(sym, cfg)})"
+        return None
+
+    gesehen = z["gesehen"]
+    for s_key in list(gesehen):
+        if zeit(gesehen[s_key]) < now - timedelta(days=7):
+            del gesehen[s_key]
+    n_gesperrt = {}
+    for k in sorted(signale, key=lambda x: -x["punkte"]):
+        if k["schluessel"] in gesehen:
+            continue
+        warum = sperre or (None if k["filter"] else "Markt-Filter") or (
+            None if k["strategie_ok"] else "Strategie hat den Backtest nicht bestanden") or blockiert(k)
+        if warum and warum.startswith(("US-Boerse", "Kurs aelter", "KI-Termin", "Daten")):
+            continue  # nur kurz gesperrt -> naechster Lauf probiert es wieder
+        if not warum:
+            news, schlagzeile = warn_news(k["symbol"], now)
+            k["news"] = schlagzeile
+            warum = f"Warn-News: {news}" if news else None
+        if not warum:
+            farbe, faktor = ki_farbe(amp, ampel_gruppe(k["symbol"], cfg))
+            k["ki"] = farbe
+            risiko = cfg["risiko_normal"]
+            if k["strategie"] in ("breakout_4h", "breakout_1h"):  # Abstimmung: mehr Zustimmung = mehr Risiko
+                risiko = 0.005 + (cfg["risiko_max_abstimmung"] - 0.005) * k["staerke"]
+            risiko = min(risiko * faktor, HART["risiko_max"])
+            ok, warum = kaufen(z, cfg, now, k, risiko, False, konto, assets, len(z["positionen"]))
+            if ok:
+                gesehen[k["schluessel"]] = now.isoformat()
+                konto = api("GET", f"{TRADING}/v2/account")
+                continue
+        gesehen[k["schluessel"]] = now.isoformat()
+        schatten_neu(z, k, now, warum)
+        n_gesperrt.setdefault(warum, []).append(f"{kurz(k['symbol'])} {k['strategie']}")
+    for warum, liste in n_gesperrt.items():
+        protokoll(now, "NICHT", f"{warum}: {len(liste)} Signale -> Schatten ({', '.join(liste[:6])}"
+                                f"{' ...' if len(liste) > 6 else ''})")
+
+    # ---- Lern-Trade: bis 20:00 kein Trade -> bester Kandidat mit halbem Risiko ----
+    if wien.hour >= int(cfg["lern_trade_ab_wien"]) and z["tag"]["einstiege"] == 0 and not z["tag"]["lern"]:
+        if sperre:
+            protokoll(now, "LERN", f"Lern-Trade heute nicht moeglich: {sperre}")
+            z["tag"]["lern"] = True
         else:
-            m = int(kandidat["menge"] * faktor * 1e6) / 1e6
-            if m * preis < rechner.HART["min_notional"]:
-                sperre = f"{kandidat['setup']}: Order zu klein"
-            else:
-                kandidat["menge"] = m
-    if sperre:
-        if schatten:
-            experiment.schatten_neu(now, zeit(z["letzte_kerze"]) + timedelta(hours=4), kandidat["setup"],
-                                    "short" if s1 else "long", preis, kandidat["stop"], kandidat["ziel_vorlaeufig"],
-                                    sperre)
-        protokoll(now, preis, regime, "NICHTS", sperre)
-        speichere_zustand(z)
-        if sperre.startswith("NOTBREMSE"):
-            print(sperre)
-            sys.exit(1)  # GitHub schickt Jonas dann eine Mail
-        return
+            moegliche = [k for k in kandidaten if not blockiert(k)]
+            if moegliche:
+                k = max(moegliche, key=lambda x: x["punkte_lern"])
+                news, k["news"] = warn_news(k["symbol"], now)
+                if not news:
+                    farbe, faktor = ki_farbe(amp, ampel_gruppe(k["symbol"], cfg))
+                    k["ki"] = farbe
+                    ok, warum = kaufen(z, cfg, now, k, cfg["risiko_lern"] * faktor, True, konto, assets,
+                                       len(z["positionen"]))
+                    if ok:
+                        z["tag"]["lern"] = True
+                    else:
+                        protokoll(now, "LERN", f"{k['symbol']}: {warum}")
+            elif wien.hour >= 22:
+                z["tag"]["lern"] = True
+                protokoll(now, "LERN", "kein moeglicher Kandidat heute")
 
-    # 3d) Kaufen
-    sym = INVERS if s1 else POS_SYMBOL
-    if s1:
-        kauf = order({"symbol": INVERS, "qty": str(kandidat["menge"]), "side": "buy", "type": "market",
-                      "time_in_force": "day", "client_order_id": f"bot-{now:%Y%m%d-%H%M%S}-kauf"})
-    else:
-        kauf = order({"symbol": SYMBOL, "qty": f"{kandidat['menge']:.6f}", "side": "buy", "type": "market",
-                      "time_in_force": "gtc", "client_order_id": f"bot-{now:%Y%m%d-%H%M%S}-kauf"})
-    fill = warte_auf_fill(kauf["id"])
-    if not fill or fill.get("status") != "filled":
-        protokoll(now, preis, regime, "FEHLER", f"Kauf nicht ausgefuehrt: {fill and fill.get('status')}")
-        speichere_zustand(z)
-        sys.exit(1)
-    einstieg, gekauft = round(float(fill["filled_avg_price"]), 2), float(fill["filled_qty"])
-    if s1:
-        stop = round(einstieg * (1 - kandidat["dist_pct"]), 2)
-        ziel = round(einstieg + p["ziel_r"] * (einstieg - stop), 2)
-    else:
-        stop = kandidat["stop"]
-        ziel = round(einstieg + p["ziel_r"] * (einstieg - stop))
-    try:
-        so = setze_stop(sym, gekauft, stop, kandidat.get("stop_limit"), now)
-    except Exception as e:  # nie ohne Stop: sofort wieder verkaufen
-        api("DELETE", f"{TRADING}/v2/positions/{sym}")
-        protokoll(now, preis, regime, "FEHLER", f"Stop ging nicht ({e}) -> Position sofort geschlossen")
-        speichere_zustand(z)
-        sys.exit(1)
-    z["position"] = {"symbol": sym, "setup": kandidat["setup"], "einstieg": einstieg, "stop": stop, "ziel": ziel,
-                     "menge": gekauft, "zeit": now.isoformat(), "stop_order_id": so["id"], "kauf_order_id": kauf["id"],
-                     "regime": regime, "rsi_tag": a.get("rsi_tag"), "rsi_4h": a.get("rsi_4h"),
-                     "atr_pct": a.get("atr_pct"), "ki": ki, "quelle": quelle}
-    if s1:
-        z["position"].update(richtung="short", einstieg_btc=round(preis), stop_btc=kandidat["stop"],
-                             ziel_btc=round(preis - p["ziel_r"] * (kandidat["stop"] - preis)))
-    z["einstiege"]["anzahl"] += 1
-    speichere_zustand(z)
-    was = f"{gekauft:g} {sym} zu {f(einstieg)}, Stop {f(stop)}, Ziel {f(ziel)}, KI {ki}"
-    if s1:
-        was += (f" (BTC {preis:,.0f}, BTC-Stop {kandidat['stop']:,.0f}, "
-                f"BTC-Ziel {z['position']['ziel_btc']:,.0f})")
-    protokoll(now, preis, regime, f"KAUF {kandidat['setup']}", was)
-    journal(f"## Einstieg {kandidat['setup']} ({sym}) | {now.astimezone(WIEN):%d.%m.%Y %H:%M}\n"
-            f"{was} · Trend {regime} · RSI Tag {a.get('rsi_tag')} / 4h {a.get('rsi_4h')} · ATR {a.get('atr_pct')} %\n")
+    # ---- Schatten nachrechnen ----
+    for s in schatten_update(inds, cfg):
+        protokoll(now, "SCHATTEN", f"#{s['id']} {s['symbol']} {s['strategie']} ({s['warum_nicht'][:40]}): "
+                                   f"{s['status']} {float(s['r']):+.2f}R")
+
+    # ---- Meldungen ----
+    if NACHRICHT.exists() and NACHRICHT.read_text(encoding="utf-8").strip():
+        melden(NACHRICHT.read_text(encoding="utf-8").strip()[:1500])
+        NACHRICHT.write_text("", encoding="utf-8")
+    konto = api("GET", f"{TRADING}/v2/account")
+    equity = float(konto["equity"])
+    if wien.hour >= 21 and z.get("abend") != heute:
+        z["abend"] = heute
+        n = sum(1 for x in lies_csv(TRADES) if x["strategie"] != "START"
+                and zeit(x["ausstieg_zeit"]).astimezone(WIEN).date().isoformat() == heute)
+        melden(f"📊 Heute {z['tag']['einstiege']} Käufe, {n} Verkäufe · Konto {zahl(equity)} $ "
+               f"({dez((equity / z['tag']['start_equity'] - 1) * 100, 1)} %) · "
+               f"Woche {dez((equity / z['woche']['equity'] - 1) * 100, 1)} %")
+    bericht(z, cfg, now, konto, filt, kandidaten, amp)
 
 
-if __name__ == "__main__":
+def main():
     modus = sys.argv[1] if len(sys.argv) > 1 else "lauf"
     DATEN.mkdir(exist_ok=True)
     if modus == "stats":
-        print("\n".join(rechner.stats(TRADES)))
-    elif modus in ("lauf", "pruefen"):
-        lauf(nur_pruefen=(modus == "pruefen"))
-    else:
+        print("\n".join(stats_text()))
+        return
+    if modus not in ("lauf", "pruefen"):
         print(__doc__)
+        return
+    now = datetime.now(timezone.utc)
+    status = "ok"
+    try:
+        lauf(nur_pruefen=(modus == "pruefen"))
+    except SystemExit:
+        status = "stopp"
+        raise
+    except Exception as e:
+        status = f"fehler: {str(e)[:200]}"
+        z = lade_zustand()
+        warnung(z, "absturz", f"❌ Bot-Fehler: {str(e)[:160]}", now)
+        speichere_zustand(z)
+        protokoll(now, "FEHLER", repr(e))
+        raise
+    finally:
+        if modus == "lauf":
+            LEBEN.write_text(json.dumps({"zeit": now.isoformat(), "wien": f"{now.astimezone(WIEN):%d.%m.%Y %H:%M}",
+                                         "status": status}, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()

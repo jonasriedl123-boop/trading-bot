@@ -1,40 +1,49 @@
 # WISSEN – alles, was Claude für diesen Bot wissen muss
 
 > Lies das am Anfang **jedes** Claude-Laufs (KI-Ampel am Morgen, Lernen am Sonntag).
-> Ziel: Claude soll den Bot so gut führen wie im Chat mit Jonas, nur ohne Gefühle und immer gleich.
+> Plan und Wünsche von Jonas: `BOT-PLAN.md` (Teil B). Stand: `BERICHT.md`. Backtest: `BACKTEST.md`.
 
 ## 1. Worum es geht
-- Jonas testet, ob sich **Traden mit KI lohnt** → Regeln in `EXPERIMENT.md`, Stand in `BERICHT.md`.
 - Nur **Alpaca Paper** (Spielgeld, 500 $ Start, Konto beginnt mit `PA`). Nie echtes Geld.
-- Der Bot (`bot.py`) läuft auf GitHub ca. alle 30–60 Min. Claude handelt **nie selbst**, sondern gibt
-  1x pro Tag die **KI-Ampel** und lernt 1x pro Woche.
+- Der Bot (`bot.py`, v3) läuft auf GitHub **alle 30 Min.**, 24/7. Claude handelt **nie selbst**: KI-Ampel jeden Morgen,
+  Lernen jeden Sonntag.
+- Ziel als Messlatte: +50 % in einem Monat (`goal.yaml`). Ehrlich: sehr hoch. Risiko wird dafür **nie** erhöht.
+- Das Repo ist **öffentlich** → nie Schlüssel, Kanal-Namen oder Persönliches in Dateien schreiben.
 
-## 2. Wie der Bot handelt (Kurzfassung, Details in `rechner.py`)
-| Setup | Wann | Was er kauft | Risiko |
+## 2. Wie der Bot handelt (Details in `strategien.py`, Einstellungen in `config.json`)
+| Strategie | Werte | Wann kaufen | Stop / Ziel / Zeitstop |
 |---|---|---|---|
-| **L1** Rücklauf im Aufwärtstrend | Tagestrend AUF (Schluss > SMA30, SMA30 steigt), 4h über SMA40, Rücklauf zur EMA20, RSI(4h) war < 45, grüne Kerze schließt über dem letzten Hoch | Bitcoin | 2 % |
-| **L2** Ausverkauf + Umkehr | Tag überverkauft (RSI < 32 oder > 12 % unter SMA30), Kurs sticht unter das Tief der letzten 30 Kerzen und schließt grün wieder darüber | Bitcoin | 1 % (Test) |
-| **S1** Rücklauf im Abwärtstrend (Bitcoin fällt) | Tagestrend AB, 4h unter SMA40, Rücklauf hoch zur EMA20, RSI(4h) war > 55, rote Kerze schließt unter dem letzten Tief | **BITI** | 2 % |
+| `breakout_tag` | Aktien/ETFs | Tagesschluss über höchstem Schluss der letzten 55 Tage **und** über SMA200 | 1,5 ATR / 2R / 5 Tage |
+| `breakout_4h`, `breakout_1h` | Krypto | Mehrere Rückblicke stimmen ab (Schluss über Hoch der letzten X Kerzen). Mehr Stimmen = mehr Risiko (0,5–1,5 %) | 1,5 ATR / 2R / 2 Tage bzw. 6 Std. |
+| `ruecksetzer_tag/_4h` | Aktien / Krypto | Aufwärtstrend, Rücklauf an EMA20, RSI < 45, grüne Kerze über Vorhoch | 1,2 ATR / 2R |
+| `umkehr_tag/_4h` | Aktien / Krypto | Überverkauft (RSI < 30 oder weit unter SMA20), Fall unter altes Tief, Schluss wieder drüber | 1 ATR / 1,5R |
 
-- Stop hinter das letzte Hoch/Tief (6 Kerzen) + 0,3 ATR, Abstand 0,8–3 ATR und 1–6 %. Ziel = 2R. Zeitstop nach 12 Kerzen (2 Tage).
-- Neue Signale nur 1x pro fertiger 4-Std.-Kerze (Kerzen enden 01, 05, 09, 13, 17, 21 Uhr Wien).
-- S1 bei geschlossener US-Börse: Signal wartet max. 20 Std. auf die Öffnung und wird verworfen, wenn Bitcoin inzwischen gestiegen ist.
-- Harte Grenzen (nie ändern): nur Paper · nur BTC/BITI · nur kaufen · kein Hebel · max. 2 % Risiko · immer Stop ·
-  max. 1 Position · max. 2 Käufe/Tag · 3 Verluste in Folge → 24 Std. Pause · Konto < 425 $ → keine Käufe.
-- Eigener News-Filter: Wörter wie hack, exploit, banned, delist, insolvent in den letzten 6 Std. → kein Kauf.
+- **Markt-Filter:** BTC über SMA200 (Tag) → Krypto-Käufe erlaubt, sonst nur BITI. SPY über SMA200 → Aktien, sonst nur SH/PSQ. GLD/TLT immer.
+- **Rangliste:** Signal-Stärke 60 % + Trend 20 % + Volumen 20 % (× `gewicht` der Strategie). Beste zuerst.
+- **Normal handeln** nur Strategien, die den Backtest bestanden haben (`daten/backtest_ergebnis.json`).
+- **Lern-Trade:** Bis 20:00 Wien noch kein Trade → bester Kandidat des Tages mit 0,5 % Risiko (darf alles testen, markiert `lern=ja`).
+- **Start-Trade:** einmalig ~15 $ BTC mit Stop, nach 1 Std. verkauft → Handy „✅ Start-Trade hat funktioniert“.
+- **Schatten-Trades** (`daten/schatten.csv`): jedes Signal, das nicht genommen wurde, und was daraus geworden wäre.
+- **Harte Grenzen** (`HART` in `bot.py`, nie ändern): nur Paper · kein Hebel · Risiko max. 2 % · immer Stop · max. 3 Positionen,
+  1 pro Wert · Tag −3 % → Stopp für heute · 3 Verluste in Folge → 12 Std. Pause · nach Verlust denselben Wert 2 Std. nicht ·
+  Konto < 425 $ → Notbremse · Kurse älter als 1 Std. oder API-Fehler → nichts kaufen.
+- Meldungen aufs Handy über ntfy (Kanal nur im GitHub-Secret `NTFY_TOPIC`). Claude kann Jonas etwas schicken, indem es
+  den Text in `daten/nachricht.txt` schreibt – der nächste Bot-Lauf schickt ihn und leert die Datei.
 
 ## 3. Alpaca – Fakten
-- Krypto-Gebühr 0,15 % (Maker) / **0,25 % (Taker)** pro Seite, wird in der gekauften Währung abgezogen. Aktien/ETFs: keine Provision.
-- Krypto: nur `market`, `limit`, `stop_limit`, Gültigkeit `gtc`/`ioc`. Mindestorder 10 $. Kein Short, kein Hebel bei Krypto.
-- Symbole: Orders/Kurse `BTC/USD`, Position `BTCUSD`.
-- Short mit Aktien geht erst ab 2.000 $ Konto → deshalb **BITI** statt Short.
-- Kursdaten für Aktien kostenlos nur über `feed=iex`.
+- Krypto-Gebühr 0,15 % (Maker) / **0,25 % (Taker)** pro Seite, in der gekauften Münze abgezogen → Stop-Menge × 0,997.
+  Aktien/ETFs: keine Provision.
+- Krypto: `market`, `limit`, `stop_limit`, Gültigkeit `gtc`/`ioc`. Kein Short. Orders/offene Orders mit `BTC/USD` suchen, Position heißt `BTCUSD`.
+- Aktien ganze Stück → **Bracket-Order** (Stop + Ziel bei Alpaca, `gtc`). Bruchteile können keine Bracket-Order und nur
+  `day` → der Bot setzt den Stop jeden Handelstag beim ersten Lauf nach Börsenstart neu (Lücke ~15–30 Min. nach 15:30).
+- **PDT-Regel** (< 25.000 $): max. 3 Daytrades in 5 Tagen → Aktien mind. über Nacht halten. Bot kauft keine Aktien mehr ab 3 Daytrades.
+- Kursdaten: Krypto gratis; Aktien-Tageskerzen SIP (15 Min. verzögert gratis), Live-Kurse IEX.
+- US-Börse Mo–Fr 15:30–22:00 Wien (Sommerzeit-Wechsel: USA 08.03.2027, EU 28.03.2027 → 3 Wochen 14:30–21:00).
+- Inverse ETFs ohne Hebel: **SH** (S&P fällt), **PSQ** (Nasdaq fällt), **BITI** (Bitcoin fällt). Verlieren langfristig Wert → nur kurz halten.
 
-## 4. BITI – Fakten
-- ProShares Short Bitcoin ETF: macht **−1x die Tagesbewegung** von Bitcoin (über CME-Futures). Fällt BTC, steigt BITI.
-- Nur zu US-Börsenzeiten handelbar: Mo–Fr 15:30–22:00 Wien (Sommerzeit-Wechsel beachten: USA 08.03.2027, EU 28.03.2027 → 3 Wochen lang 14:30–21:00).
-- Verliert langfristig Wert (tägliche Umschichtung, ca. 1 % Kosten pro Jahr) → **nur kurz halten** (max. 2 Tage im Bot).
-- Kann über Nacht/Wochenende eine Lücke machen (Bitcoin handelt 24/7, BITI nicht). Der Stop greift dann erst bei Öffnung.
+## 4. Kosten im Kopf behalten
+- Krypto kostet hin und zurück ca. **0,5 %** (2 × 0,25 %). Bei einem Stop von 3 % sind das schon ~0,17R pro Trade.
+- Aktien/ETFs kosten keine Gebühr → für viele kleine Trades billiger. Deshalb handelt der Bot beides.
 
 ## 5. Markt lesen – was in Jonas' Tests wichtig war
 1. **Zuerst der Trend** (Tag, dann 4h). Nur mit dem Trend handeln.
@@ -60,54 +69,51 @@
 _(Claude ergänzt diese Tabelle jeden Sonntag.)_
 
 ## 7. KI-Ampel – so entscheidet Claude jeden Morgen
-**Datei:** `daten/ki_ampel.json`. Der Bot liest nur diese Datei. Fehlt sie oder ist sie abgelaufen, handelt er nur nach Regeln.
+**Datei:** `daten/ki_ampel.json`. Fehlt sie oder ist sie abgelaufen, handelt der Bot nur nach Regeln.
 
 ```json
 {
-  "erstellt": "2026-11-26T07:45:00+01:00",
-  "gueltig_bis": "2026-11-27T10:00:00+01:00",
-  "long_btc": "GRUEN",
-  "fallend_biti": "GELB",
+  "erstellt": "2026-11-27T07:45:00+01:00",
+  "gueltig_bis": "2026-11-28T10:00:00+01:00",
+  "krypto": "GRUEN",
+  "aktien": "GRUEN",
+  "fallend": "GELB",
+  "gesperrt": ["COIN"],
   "sperrzeiten": [
-    {"von": "2026-11-26T13:30:00+01:00", "bis": "2026-11-26T15:30:00+01:00", "grund": "US BIP + Arbeitslosenanträge 14:30"}
+    {"von": "2026-11-27T13:30:00+01:00", "bis": "2026-11-27T15:30:00+01:00", "grund": "US BIP 14:30"}
   ],
   "prognose_24h": "faellt",
   "begruendung": "Max. 200 Zeichen, Deutsch, einfache Wörter",
-  "lage": {"btc": 60100, "trend_tag": "fallend", "funding": "leicht negativ", "etf_fluesse": "-120 Mio $ gestern",
-           "nasdaq": "+0,4 %", "dollar": "stabil", "wichtigste_news": "…"},
+  "lage": {"btc": 60100, "spy": 590, "trend": "…", "etf_fluesse": "…", "wichtigste_news": "…"},
   "quellen": ["https://…"]
 }
 ```
-- Werte nur `GRUEN`, `GELB`, `ROT`. Zeiten **immer mit Zeitzone** (+01:00 Winter, +02:00 Sommer).
-- `gueltig_bis` = nächster Tag 10:00 Wien (damit es bis zum nächsten Lauf reicht).
-- `prognose_24h`: `steigt` (> +1 %), `faellt` (< −1 %) oder `seitwaerts`. Wird nach 24 Std. automatisch geprüft
-  (`daten/prognosen.csv`). Ehrlich schätzen, nicht raten: lieber `seitwaerts`, wenn nichts klar ist.
+- `krypto` = Krypto kaufen, `aktien` = Aktien/ETFs/GLD/TLT kaufen, `fallend` = inverse ETFs (SH, PSQ, BITI).
+  Werte nur `GRUEN` (normal), `GELB` (halbes Risiko), `ROT` (keine neuen Käufe dieser Gruppe).
+- `gesperrt`: einzelne Werte mit schlimmen News (z. B. Gewinnwarnung, Hack, Klage). Nur Symbole aus `config.json`.
+- `sperrzeiten`: in dieser Zeit **gar keine** neuen Trades (alle Werte). Wichtige US-Daten 60 Min. vorher bis 60 Min. nachher,
+  FOMC 30 Min. vorher bis 90 Min. danach. Heute + morgen eintragen. Zeiten **immer mit Zeitzone** (+01:00 Winter, +02:00 Sommer).
+- `gueltig_bis` = nächster Tag 10:00 Wien. `prognose_24h` (Bitcoin): `steigt` / `faellt` / `seitwaerts` (Schwelle ±1 %).
 
-**Nur frische Infos:** News, ETF-Flüsse, Funding, Termine nur aus den **letzten 48 Std.** (Datum jeder Quelle prüfen).
-Alte Studien, Rückblicke oder Statistiken älter als 12 Monate sind **kein** Grund für ROT/GELB. Im Zweifel: Quelle weglassen.
-**Gedächtnis:** Vor jeder Ampel `daten/trades.csv`, `daten/schatten.csv` und `daten/prognosen.csv` der letzten 7 Tage lesen.
-Gleiche Lage wie bei einem frischen Verlust → vorsichtiger (GELB). Die gleichen Fehler nicht zweimal machen.
+**Nur frische Infos:** News, Termine, Flüsse nur aus den **letzten 48 Std.** (Datum jeder Quelle prüfen).
+**Gedächtnis:** Vorher `daten/trades.csv` und `daten/schatten.csv` der letzten 7 Tage lesen. Gleiche Fehler nicht zweimal.
 
-**Regeln für die Ampel (wichtig für ein faires Experiment):**
-- **Standard ist GRÜN.** ROT nur mit einem **konkreten, nachprüfbaren Grund** (News/Daten mit Quelle).
-- `long_btc` **ROT** z. B. bei: Hack/Pleite einer großen Börse, Verbot/harter Regulierung, große ETF-Abflüsse
-  mehrere Tage + Bruch einer wichtigen Unterstützung mit schlechten News, Schock bei US-Daten (Risk-off).
-- `fallend_biti` **ROT** z. B. bei: starken guten News (große ETF-Zuflüsse, positive Regulierung, Zinssenkung),
-  Funding stark negativ + Open Interest steigt (Short-Squeeze-Gefahr), Bitcoin deutlich stärker als Nasdaq.
-- **GELB** (halbes Risiko): Lage gemischt, wichtiger Termin in den nächsten 24 Std. (außerhalb der Sperrzeit),
-  Funding extrem in Trade-Richtung (alle stehen auf einer Seite), Claude unsicher.
-- **Sperrzeiten:** wichtige US-Daten von 60 Min. vorher bis 60 Min. nachher. FOMC: 30 Min. vor dem Entscheid bis
-  90 Min. danach. Auch große Krypto-Termine mit fester Uhrzeit. Heute + morgen eintragen.
-- Nicht ständig umschalten: Die Ampel bewertet **Nachrichten und Termine**, nicht die Chart-Signale (das macht der Bot).
+**Regeln:** Standard ist **GRÜN**. ROT nur mit konkretem, nachprüfbarem Grund (Quelle). GELB bei gemischter Lage oder großem
+Termin in den nächsten 24 Std. Die Ampel bewertet **Nachrichten und Termine**, nicht die Chart-Signale (das macht der Bot).
+- `krypto` ROT z. B.: Hack/Pleite einer großen Börse, Verbot, Schock bei US-Daten.
+- `aktien` ROT z. B.: Crash-Tag mit klarer Ursache (Krieg, Bankenpleite), Schock bei US-Daten.
+- `fallend` ROT z. B.: sehr gute News (Zinssenkung, riesige Zuflüsse), Short-Squeeze-Gefahr.
 
-## 8. Lernen am Sonntag – Regeln
-- Max. **1** Wert in `parameter.json` pro Woche ändern, nur mit Grund aus den Daten. In `ERKENNTNISSE.md` eintragen (Datum, alt → neu, Grund).
-- Ein Setup erst feinjustieren, wenn es **≥ 20 Trades** hat. Setup abschalten (`*_aktiv: false`), wenn es nach **≥ 15 Trades** im Schnitt **< −0,3R** liegt.
-- Wird es nach einer Änderung schlechter → zurück auf den alten Wert.
-- Nie ändern: harte Grenzen (`rechner.py` → `HART`), `EXPERIMENT.md`, alte Trades.
-- Jeden fertigen Trade in `ANALYSEN.md` erklären: Was hat den Kurs bewegt (News suchen!), war es Können/Pech/Glück/Fehler?
-- Schatten-Trades + Prognosen auswerten: Wo lag die KI richtig/falsch? Daraus Regeln für die Ampel ableiten (Abschnitt 7 verbessern).
-- Diese Datei aktuell halten: Abschnitt 6 (Lektionen) und 9 (Lage).
+## 8. Lernen am Sonntag – Regeln (BOT-PLAN Teil B 9)
+1. `python3 lernen.py analyse` → `LERNEN.md` (nach Wert, Strategie, Uhrzeit, Wochentag, Trend, KI, Lern vs. normal,
+   Schatten-Trades, Zufalls-Zwillinge, Kurz-Urteil pro Trade).
+2. Jeden fertigen Trade in `ANALYSEN.md` erklären (News zur Trade-Zeit suchen): **Können / Pech / Glück / Fehler**.
+3. `HYPOTHESEN.md`: alte Vermutungen prüfen (nach 20 Trades). Neue Vermutung **vor** einer Änderung aufschreiben.
+4. **Max. 1 Änderung pro Woche** in `config.json`, nur mit genug Daten: ≥ 20 Trades zum Feinjustieren, ≥ 15 zum Abschalten
+   (`aktiv: false`, oder Wert in `gesperrte_werte`). Gute Strategien → mehr `gewicht` (max. 2). Oft ist „nichts ändern“ richtig.
+5. **Vorher** `python3 lernen.py speichern "Grund"` (Kopie nach `history/`). Wird es schlechter → `python3 lernen.py zurueck history/<datei>`.
+6. Nie ändern: `HART` in `bot.py`, Risiko über 2 %, Paper-Prüfung, Stop-Logik, `goal.yaml`, alte Trades.
+7. Ergebnis (max. 5 Zeilen, einfache Wörter) in `daten/nachricht.txt` → kommt aufs Handy.
 
 ## 9. Lage (Stand 25.11.2026, wird jeden Sonntag aktualisiert)
 - Bitcoin ca. **60.000 $**, Tagestrend **fallend**: 16 % unter SMA30 (~71.200), RSI(Tag) ~25 (stark überverkauft),
@@ -122,5 +128,5 @@ Gleiche Lage wie bei einem frischen Verlust → vorsichtiger (GELB). Die gleiche
 
 ## 10. Was Claude nie tun darf
 - Keine Orders bei Alpaca, keine Schlüssel anfassen oder anzeigen, nichts an GitHub-Einstellungen/Secrets ändern.
-- Nichts löschen (Trades, Protokolle, Schatten, Prognosen).
-- Keine echten Geld-Tipps für Jonas oder andere. Kein Drängen zu echtem Geld.
+- Nichts löschen (Trades, Protokolle, Schatten).
+- Keine echten Geld-Tipps. Echtes Geld erst nach mind. 100 Trades, die besser als Zufall **und** Halten sind – und nur, wenn Jonas es ausdrücklich sagt.

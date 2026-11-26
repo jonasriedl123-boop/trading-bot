@@ -1,0 +1,30 @@
+{
+  "_info": "Einstellungen v3. ntfy-Kanal steht NUR im GitHub-Secret NTFY_TOPIC (Repo ist oeffentlich). Das Sonntags-Lernen darf max. 1 Wert pro Woche aendern (vorher Kopie in history/). Harte Grenzen stehen in bot.py (HART) und gelten immer.",
+  "version": "v3",
+  "risiko_normal": 0.01,
+  "risiko_lern": 0.005,
+  "risiko_max_abstimmung": 0.015,
+  "max_einstiege_tag": 6,
+  "lern_trade_ab_wien": 20,
+  "max_anteil_pro_position": 0.5,
+  "gebuehr_krypto": 0.0025,
+  "slippage_aktie": 0.0005,
+  "start_trade_usd": 15,
+  "krypto": ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "LINK/USD", "AVAX/USD"],
+  "aktien": ["AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "TSLA", "AVGO", "JPM", "V", "MA", "BAC",
+             "KO", "PEP", "PG", "WMT", "COST", "HD", "MCD", "UNH", "LLY", "JNJ", "MRK", "XOM", "CVX",
+             "NFLX", "AMD", "CRM", "ORCL", "ADBE", "SPY", "QQQ", "IWM"],
+  "neutral": ["GLD", "TLT"],
+  "invers_aktien": ["SH", "PSQ"],
+  "invers_krypto": ["BITI"],
+  "gesperrte_werte": [],
+  "strategien": {
+    "breakout_tag":    {"aktiv": true, "gewicht": 1.0, "lookback": 55, "stop_atr": 1.5, "ziel_r": 2.0, "zeit_kerzen": 5},
+    "breakout_4h":     {"aktiv": true, "gewicht": 1.0, "lookbacks": [10, 20, 30, 40, 55], "min_stimmen": 0.4, "stop_atr": 1.5, "ziel_r": 2.0, "zeit_kerzen": 12},
+    "breakout_1h":     {"aktiv": true, "gewicht": 1.0, "lookbacks": [12, 24, 48, 72], "min_stimmen": 0.5, "stop_atr": 1.5, "ziel_r": 2.0, "zeit_kerzen": 6},
+    "ruecksetzer_tag": {"aktiv": true, "gewicht": 1.0, "rsi_max": 45, "ema_toleranz_atr": 0.3, "stop_atr": 1.2, "ziel_r": 2.0, "zeit_kerzen": 5},
+    "ruecksetzer_4h":  {"aktiv": true, "gewicht": 1.0, "rsi_max": 45, "ema_toleranz_atr": 0.3, "stop_atr": 1.2, "ziel_r": 2.0, "zeit_kerzen": 12},
+    "umkehr_tag":      {"aktiv": true, "gewicht": 1.0, "rsi_max": 30, "abstand_atr": 2.5, "lookback": 20, "stop_atr": 1.0, "ziel_r": 1.5, "zeit_kerzen": 5},
+    "umkehr_4h":       {"aktiv": true, "gewicht": 1.0, "rsi_max": 30, "abstand_atr": 2.5, "lookback": 20, "stop_atr": 1.0, "ziel_r": 1.5, "zeit_kerzen": 12}
+  }
+}

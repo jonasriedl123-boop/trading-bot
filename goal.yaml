@@ -1,0 +1,14 @@
+# Ziel-Datei (BOT-PLAN Teil B 9). Das Sonntags-Lernen misst sich daran. Nur Jonas ändert diese Datei.
+wunsch:
+  monatsrendite: 0.50        # +50 % pro Monat (500 -> 750 $). Ehrlich: sehr hoch, gute Bots schaffen ein paar %.
+realistisch:
+  besser_als_halten: true    # mehr Ertrag pro Absturz als Bitcoin bzw. S&P 500 halten
+  besser_als_zufall: true    # schlägt mind. 8 von 10 Zufalls-Zwillingen
+  max_absturz: 0.15          # max. 15 % vom Höchststand
+  trades_pro_tag_min: 1      # mind. 1 Trade pro Tag (sonst Lern-Trade ab 20:00 Wien)
+  trades_pro_tag_ziel: 3
+urteil_ab:
+  trades: 30                 # vorher ist alles Zufall
+echtes_geld:
+  frühestens_nach_trades: 100   # und nur wenn besser als Zufall UND Halten, und nur wenn Jonas es ausdrücklich sagt
+risiko_nie_erhöhen_für_ziel: true
