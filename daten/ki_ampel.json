@@ -1,28 +1,35 @@
 {
-  "erstellt": "2026-11-25T22:35:51+01:00",
-  "gueltig_bis": "2026-11-26T10:00:00+01:00",
+  "erstellt": "2026-11-26T07:46:08+01:00",
+  "gueltig_bis": "2026-11-27T10:00:00+01:00",
   "long_btc": "GELB",
-  "fallend_biti": "GRUEN",
-  "sperrzeiten": [],
+  "fallend_biti": "GELB",
+  "sperrzeiten": [
+    {
+      "von": "2026-11-27T08:00:00+01:00",
+      "bis": "2026-11-27T10:00:00+01:00",
+      "grund": "Großer Bitcoin-Optionsverfall (Monatsende, Deribit 09:00 Wien)"
+    }
+  ],
   "prognose_24h": "seitwaerts",
-  "begruendung": "Zoll-Schock, Zinserhöhung im Dez. fast sicher, 6 Tage ETF-Abflüsse: Druck auf Bitcoin. Aber extreme Angst (Index 8) ist oft nahe am Boden. Kaufen nur mit halbem Risiko. Morgen US-Feiertag.",
+  "begruendung": "Gemischt: 7. Tag ETF-Abflüsse und Zinserhöhung erwartet, aber Bitcoin erholt sich, Shorts werden aufgelöst (Squeeze-Gefahr). Feiertag = wenig Handel. Beide Seiten nur halbes Risiko.",
   "lage": {
-    "btc": 60300,
-    "trend_tag": "fallend, 16 % unter SMA30, zweiter Tag unter dem 200-Wochen-Schnitt",
-    "funding": "unbekannt",
-    "etf_fluesse": "-570 Mio $ am 23.11., 6 Tage Abfluss in Folge, November ca. -4,9 Mrd $ (Rekord)",
-    "nasdaq": "Tech schwach (Zweifel an KI-Bewertungen)",
-    "dollar": "unbekannt",
-    "fear_greed": 8,
-    "wichtigste_news": "Bericht: Trump plant Zölle auf 2,4 Bio. $ Importe aus 16 Ländern; Markt erwartet Fed-Zinserhöhung am 09.12. (~96 %); BTC-Tief heute ca. 58.900; Tief 22./23.11. ca. 55.100",
-    "termine": "Heute 14:30 PCE + BIP (vorbei), 20:00 Beige Book (vorbei). Do 26.11. Thanksgiving: US-Börse zu, keine Daten. Fr 27.11. Börse nur bis 19:00 Wien. FOMC 09.12."
+    "btc": 60800,
+    "trend_tag": "fallend, RSI(Tag) ~29, Erholung von ~57.200 auf ~60.800 (+2,8 % in 24 Std.)",
+    "funding": "unbekannt (keine frischen Daten)",
+    "etf_fluesse": "-453 Mio $ am 25.11., -232 Mio $ am 24.11., 7 Tage Abfluss in Folge, November ca. -5,4 Mrd $ (Rekord)",
+    "nasdaq": "Mi -0,6 % (intraday -4 %), Futures Do früh +0,5 %; Bitcoin zuletzt stärker als Nasdaq",
+    "dollar": "unbekannt (EUR/USD leicht schwächer)",
+    "fear_greed": 11,
+    "wichtigste_news": "Shorts liquidiert, BTC wieder über 60.000; CryptoQuant-Chef: ca. 16 Mrd $ Short-Liquidationen zwischen 60k und 100k; Core-PCE 3,3 % (höher als erwartet), Markt preist Fed-Zinserhöhung 09.12.; US-Bitcoin-Reserve-Gesetz im Ausschuss durch; keine Hacks",
+    "termine": "Do 26.11. Thanksgiving: US-Börse zu (BITI nicht handelbar), keine US-Daten. Fr 27.11. Optionsverfall 09:00 Wien, US-Börse nur bis 19:00 Wien, keine wichtigen US-Daten. FOMC 09.12."
   },
   "quellen": [
-    "https://phemex.com/news/article/bitcoin-crashes-below-60k-as-24-trillion-tariff-shock-ignites-rate-hike-panic-104755",
-    "https://www.forbes.com/sites/murtuza-merchant/2026/11/25/bitcoin-etf-outflows-near-5-billion-as-tariffs-hit-what-to-do-now/",
-    "https://www.fxstreet.com/cryptocurrencies/news/risk-appetite-muted-bitcoin-falls-below-60-000-202611251252",
-    "https://que.com/bitcoin-slips-below-60000-as-etf-outflows-hit-a-sixth-straight-day-and-november-is-now-the-worst-month-ever-for-the-funds/",
-    "https://www.simianx.ai/stories/us-economic-calendar-this-month-in-your-time-zone",
-    "https://www.financecalendar.com/event/us-personal-income-and-outlays-pce-november-2026/"
+    "https://crypto.news/bitcoin-price-prediction-btc-recovery-etf-outflows/",
+    "https://www.kucoin.com/news/articles/crypto-daily-market-report-november-26-2026",
+    "https://coincodex.com/article/95985/daily-market-update-for-november-26-2026",
+    "https://www.kucoin.com/news/flash/cryptoquant-ceo-warns-of-rising-btc-short-squeeze-risk-with-16b-potential-liquidation",
+    "https://cointelegraph.com/markets/bitcoin-etfs-near-record-5-billion-monthly-outflows",
+    "https://squawknews.com/brief/livecast/2026-11-26",
+    "https://www.newsweek.com/stock-market-thanksgiving-2026-12761725"
   ]
 }
