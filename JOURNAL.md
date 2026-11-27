@@ -3,6 +3,15 @@
 Der Bot schreibt hier jeden Einstieg und jeden fertigen Trade rein. Claude ergaenzt am Sonntag die Analyse.
 
 <!-- NEU -->
+## Einstieg PG breakout_tag (Lern-Trade, halbes Risiko) | 27.11.2026 15:55
+0.522 zu 172,63 · Stop 167,82 · Ziel 182,07 · Schluss 173.23 vs 55-Tage-Hoch 173.02, SMA200 150.46 · Markt-Filter AB · RSI 66.8 · ATR 1.84 % · KI keine
+
+
+## #4 SOL ruecksetzer_4h (Lern-Trade) | 27.11.2026 15:55 | -1.13R (-2.97 $)
+Einstieg 73,38 · Stop 70,90 · Ziel 77,94 · Ausstieg 70,94 (Stop) · MFE 0.18R · MAE -0.24R · KI keine
+Warum rein: Trend ja Ruecklauf ja RSI nein Ausloeser ja
+
+
 ## #3 XRP umkehr_4h (Lern-Trade) | 27.11.2026 11:12 | +1.16R (+1.44 $)
 Einstieg 0,9463 · Stop 0,9239 · Ziel 0,9800 · Ausstieg 0,9770 (Ziel) · MFE 1.58R · MAE -0.29R · KI GELB
 Warum rein: ueberverkauft nein unter Tief nein zurueck ja

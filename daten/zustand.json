@@ -2,30 +2,28 @@
   "version": 3,
   "alt_v2": {},
   "positionen": {
-    "SOL/USD": {
-      "symbol": "SOL/USD",
-      "strategie": "ruecksetzer_4h",
+    "PG": {
+      "symbol": "PG",
+      "strategie": "breakout_tag",
       "lern": true,
-      "art": "4h",
-      "einstieg": 73.377,
-      "stop": 70.9002732816764,
-      "ziel": 77.9443534366472,
-      "menge": 1.061361059,
-      "zeit": "2026-11-27T09:06:02.590118+00:00",
-      "zeit_kerzen": 12,
-      "stop_order_id": "57719538-590f-450e-8de2-7c9a49e606dc",
+      "art": "tag",
+      "einstieg": 172.626,
+      "stop": 167.81912888982902,
+      "ziel": 182.07174222034195,
+      "menge": 0.522,
+      "zeit": "2026-11-27T14:55:54.168032+00:00",
+      "zeit_kerzen": 5,
+      "stop_order_id": "165ec3fd-aed3-4b47-9f64-f49d8fd0ebcf",
       "bracket": false,
-      "bruchteil": false,
+      "bruchteil": true,
       "trend": "AB",
-      "rsi": 62.8,
-      "atr_pct": 2.67,
+      "rsi": 66.8,
+      "atr_pct": 1.84,
       "ki": "keine",
       "news": "",
-      "punkte": 0.0381,
-      "info": "Trend ja Ruecklauf ja RSI nein Ausloeser ja",
-      "kerze_t": "2026-11-27T04:00:00+00:00",
-      "mfe_r": 0.18,
-      "mae_r": -0.24
+      "punkte": 0.8502,
+      "info": "Schluss 173.23 vs 55-Tage-Hoch 173.02, SMA200 150.46",
+      "kerze_t": "2026-11-25T05:00:00+00:00"
     }
   },
   "gesehen": {
@@ -45,14 +43,15 @@
     "DOGE/USD|breakout_4h|2026112704": "2026-11-27T09:06:02.590118+00:00",
     "DOGE/USD|breakout_1h|2026112710": "2026-11-27T11:26:12.581605+00:00",
     "DOGE/USD|breakout_1h|2026112711": "2026-11-27T12:33:21.526467+00:00",
-    "DOGE/USD|breakout_4h|2026112708": "2026-11-27T12:33:21.526467+00:00"
+    "DOGE/USD|breakout_4h|2026112708": "2026-11-27T12:33:21.526467+00:00",
+    "DOGE/USD|breakout_1h|2026112713": "2026-11-27T14:55:54.168032+00:00"
   },
   "tag": {
     "datum": "2026-11-27",
-    "einstiege": 1,
+    "einstiege": 2,
     "lern": true,
     "start_equity": 497.84,
-    "lern_n": 1
+    "lern_n": 2
   },
   "woche": {
     "kw": "2026-W48",
@@ -658,12 +657,13 @@
     }
   },
   "letzte_preise": {
-    "btc": 61479.95,
-    "spy": 728.04
+    "btc": 59273.928,
+    "spy": 721.72
   },
   "start_trade": "fertig",
   "abend": "2026-11-26",
   "sperre_wert": {
-    "LINK/USD": "2026-11-27T01:56:52.149440+00:00"
+    "LINK/USD": "2026-11-27T01:56:52.149440+00:00",
+    "SOL/USD": "2026-11-27T16:55:54.168032+00:00"
   }
 }
