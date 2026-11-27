@@ -25,3 +25,8 @@ zeit_wien,aktion,text
 2026-11-27 15:55,VERKAUF,"SOL/USD Stop 70,94 -> -2.97 $ (-1.13R)"
 2026-11-27 15:55,NICHT,"Markt-Filter: 1 Signale -> Schatten (DOGE breakout_1h)"
 2026-11-27 15:55,KAUF,"PG breakout_tag (Lern-Trade, halbes Risiko): 0.522 zu 172,63, Stop 167,82, Ziel 182,07, Punkte 0.8502, KI keine"
+2026-11-27 17:01,SCHATTEN,"#13 XRP/USD breakout_4h (Markt-Filter): Stop -1.14R"
+2026-11-27 17:01,SCHATTEN,"#15 DOGE/USD breakout_1h (Markt-Filter): Stop -1.44R"
+2026-11-27 17:01,SCHATTEN,"#16 DOGE/USD breakout_1h (Markt-Filter): Stop -1.44R"
+2026-11-27 17:01,SCHATTEN,"#17 DOGE/USD breakout_4h (Markt-Filter): Stop -1.16R"
+2026-11-27 17:01,SCHATTEN,"#18 DOGE/USD breakout_1h (Markt-Filter): Stop -1.43R"
