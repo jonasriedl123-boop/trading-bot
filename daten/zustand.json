@@ -24,7 +24,7 @@
       "punkte": 0.1095,
       "info": "ueberverkauft nein unter Tief nein zurueck ja",
       "kerze_t": "2026-11-26T16:00:00+00:00",
-      "mfe_r": 0.97,
+      "mfe_r": 1.47,
       "mae_r": -0.29
     }
   },
@@ -652,7 +652,7 @@
     }
   },
   "letzte_preise": {
-    "btc": 61703.7,
+    "btc": 61699.3,
     "spy": 716.67
   },
   "start_trade": "fertig",
