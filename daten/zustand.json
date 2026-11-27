@@ -24,8 +24,8 @@
       "punkte": 0.8502,
       "info": "Schluss 173.23 vs 55-Tage-Hoch 173.02, SMA200 150.46",
       "kerze_t": "2026-11-25T05:00:00+00:00",
-      "mfe_r": 0.0,
-      "mae_r": -0.0
+      "mfe_r": 0.06,
+      "mae_r": 0.0
     }
   },
   "gesehen": {
@@ -659,8 +659,8 @@
     }
   },
   "letzte_preise": {
-    "btc": 60031.45,
-    "spy": 725.1
+    "btc": 59877.3,
+    "spy": 726.25
   },
   "start_trade": "fertig",
   "abend": "2026-11-26",
