@@ -1,15 +1,15 @@
 # Bericht – Trading-Bot v3
 
-Stand: **27.11.2026 08:56** Wien · Paper-Konto · automatisch geschrieben
+Stand: **27.11.2026 10:06** Wien · Paper-Konto · automatisch geschrieben
 
 | | Wert |
 |---|---|
-| Konto | **499,76 $** (-0.0% seit Start 26.11.2026) |
+| Konto | **499,35 $** (-0.1% seit Start 26.11.2026) |
 | Ziel (+50 % in 1 Monat, sehr hoch) | 749,85 $ |
 | Bitcoin halten | +1.4% |
 | S&P 500 (SPY) halten | +0.0% |
 | Markt-Filter | Bitcoin über 200-Tage-Schnitt: False · SPY: False |
-| KI-Ampel | Krypto GELB · Aktien GRUEN · fallend GELB |
+| KI-Ampel | keine gültige |
 | Bot | an |
 
 ## Offene Positionen
@@ -17,6 +17,7 @@ Stand: **27.11.2026 08:56** Wien · Paper-Konto · automatisch geschrieben
 | Wert | Strategie | Einstieg | Stop | Ziel | seit |
 |---|---|---|---|---|---|
 | XRP/USD | umkehr_4h (Lern) | 0,9463 | 0,9239 | 0,9800 | 26.11. 23:57 |
+| SOL/USD | ruecksetzer_4h (Lern) | 73,38 | 70,90 | 77,94 | 27.11. 10:06 |
 
 ## Trades
 ```

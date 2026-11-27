@@ -24,8 +24,31 @@
       "punkte": 0.1095,
       "info": "ueberverkauft nein unter Tief nein zurueck ja",
       "kerze_t": "2026-11-26T16:00:00+00:00",
-      "mfe_r": 1.47,
+      "mfe_r": 1.58,
       "mae_r": -0.29
+    },
+    "SOL/USD": {
+      "symbol": "SOL/USD",
+      "strategie": "ruecksetzer_4h",
+      "lern": true,
+      "art": "4h",
+      "einstieg": 73.377,
+      "stop": 70.9002732816764,
+      "ziel": 77.9443534366472,
+      "menge": 1.064021112,
+      "zeit": "2026-11-27T09:06:02.590118+00:00",
+      "zeit_kerzen": 12,
+      "stop_order_id": "57719538-590f-450e-8de2-7c9a49e606dc",
+      "bracket": false,
+      "bruchteil": false,
+      "trend": "AB",
+      "rsi": 62.8,
+      "atr_pct": 2.67,
+      "ki": "keine",
+      "news": "",
+      "punkte": 0.0381,
+      "info": "Trend ja Ruecklauf ja RSI nein Ausloeser ja",
+      "kerze_t": "2026-11-27T04:00:00+00:00"
     }
   },
   "gesehen": {
@@ -40,13 +63,16 @@
     "XRP/USD|breakout_1h|2026112705": "2026-11-27T06:31:28.962231+00:00",
     "DOGE/USD|breakout_1h|2026112705": "2026-11-27T06:31:28.962231+00:00",
     "LINK/USD|breakout_1h|2026112705": "2026-11-27T06:31:28.962231+00:00",
-    "AVAX/USD|breakout_1h|2026112705": "2026-11-27T06:31:28.962231+00:00"
+    "AVAX/USD|breakout_1h|2026112705": "2026-11-27T06:31:28.962231+00:00",
+    "XRP/USD|breakout_4h|2026112704": "2026-11-27T09:06:02.590118+00:00",
+    "DOGE/USD|breakout_4h|2026112704": "2026-11-27T09:06:02.590118+00:00"
   },
   "tag": {
     "datum": "2026-11-27",
-    "einstiege": 0,
-    "lern": false,
-    "start_equity": 497.84
+    "einstiege": 1,
+    "lern": true,
+    "start_equity": 497.84,
+    "lern_n": 1
   },
   "woche": {
     "kw": "2026-W48",
@@ -652,7 +678,7 @@
     }
   },
   "letzte_preise": {
-    "btc": 61699.3,
+    "btc": 61685.0,
     "spy": 716.67
   },
   "start_trade": "fertig",
