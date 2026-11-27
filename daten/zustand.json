@@ -2,31 +2,6 @@
   "version": 3,
   "alt_v2": {},
   "positionen": {
-    "XRP/USD": {
-      "symbol": "XRP/USD",
-      "strategie": "umkehr_4h",
-      "lern": true,
-      "art": "4h",
-      "einstieg": 0.9463,
-      "stop": 0.9238808612785261,
-      "ziel": 0.979978708082211,
-      "menge": 55.461395061,
-      "zeit": "2026-11-26T22:57:51.877279+00:00",
-      "zeit_kerzen": 12,
-      "stop_order_id": "88c910f2-3377-4d91-ae7f-7874276b3a1a",
-      "bracket": false,
-      "bruchteil": false,
-      "trend": "AB",
-      "rsi": 55.9,
-      "atr_pct": 2.37,
-      "ki": "GELB",
-      "news": "",
-      "punkte": 0.1095,
-      "info": "ueberverkauft nein unter Tief nein zurueck ja",
-      "kerze_t": "2026-11-26T16:00:00+00:00",
-      "mfe_r": 1.58,
-      "mae_r": -0.29
-    },
     "SOL/USD": {
       "symbol": "SOL/USD",
       "strategie": "ruecksetzer_4h",
@@ -35,7 +10,7 @@
       "einstieg": 73.377,
       "stop": 70.9002732816764,
       "ziel": 77.9443534366472,
-      "menge": 1.064021112,
+      "menge": 1.061361059,
       "zeit": "2026-11-27T09:06:02.590118+00:00",
       "zeit_kerzen": 12,
       "stop_order_id": "57719538-590f-450e-8de2-7c9a49e606dc",
@@ -48,7 +23,9 @@
       "news": "",
       "punkte": 0.0381,
       "info": "Trend ja Ruecklauf ja RSI nein Ausloeser ja",
-      "kerze_t": "2026-11-27T04:00:00+00:00"
+      "kerze_t": "2026-11-27T04:00:00+00:00",
+      "mfe_r": 0.02,
+      "mae_r": 0.0
     }
   },
   "gesehen": {
@@ -678,7 +655,7 @@
     }
   },
   "letzte_preise": {
-    "btc": 61685.0,
+    "btc": 61608.49,
     "spy": 716.67
   },
   "start_trade": "fertig",

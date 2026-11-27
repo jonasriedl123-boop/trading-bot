@@ -1,3 +1,4 @@
 id,symbol,strategie,lern,einstieg_zeit,einstieg,stop,ziel,menge,ausstieg_zeit,ausstieg,grund,gewinn_usd,gebuehr_usd,r,mfe_r,mae_r,trend,rsi,atr_pct,uhrzeit_wien,wochentag,ki,news,punkte,info
 1,BTC/USD,START,nein,2026-11-26T21:41:41.992877+00:00,60851.229207897,59006.07,91246.5,0.000245966,2026-11-26T22:57:51.877279+00:00,60376.587,Start-Test fertig,-0.19,0.07,-0.42,0.04,-0.25,,,,22:41,Do,-,,,"Test, ob Kauf + Stop + Verkauf klappen"
 2,LINK/USD,breakout_1h,ja,2026-11-26T21:56:18.447580+00:00,9.4006,9.264551129283785,9.645097741432432,9.826661683,2026-11-26T23:56:52.149440+00:00,9.28,Stop,-1.64,0.46,-1.23,0.08,-0.75,AB,66.7,0.9,22:56,Do,GELB,,0.038,Breakout 0/4 Rueckblicke
+3,XRP/USD,umkehr_4h,ja,2026-11-26T22:57:51.877279+00:00,0.9463,0.9238808612785261,0.979978708082211,55.461395061,2026-11-27T10:12:28.506267+00:00,0.977016,Ziel,1.44,0.27,1.16,1.58,-0.29,AB,55.9,2.37,23:57,Do,GELB,,0.1095,ueberverkauft nein unter Tief nein zurueck ja

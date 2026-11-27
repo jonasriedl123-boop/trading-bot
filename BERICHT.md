@@ -1,12 +1,12 @@
 # Bericht – Trading-Bot v3
 
-Stand: **27.11.2026 10:06** Wien · Paper-Konto · automatisch geschrieben
+Stand: **27.11.2026 11:12** Wien · Paper-Konto · automatisch geschrieben
 
 | | Wert |
 |---|---|
-| Konto | **499,35 $** (-0.1% seit Start 26.11.2026) |
+| Konto | **499,36 $** (-0.1% seit Start 26.11.2026) |
 | Ziel (+50 % in 1 Monat, sehr hoch) | 749,85 $ |
-| Bitcoin halten | +1.4% |
+| Bitcoin halten | +1.3% |
 | S&P 500 (SPY) halten | +0.0% |
 | Markt-Filter | Bitcoin über 200-Tage-Schnitt: False · SPY: False |
 | KI-Ampel | keine gültige |
@@ -16,15 +16,15 @@ Stand: **27.11.2026 10:06** Wien · Paper-Konto · automatisch geschrieben
 
 | Wert | Strategie | Einstieg | Stop | Ziel | seit |
 |---|---|---|---|---|---|
-| XRP/USD | umkehr_4h (Lern) | 0,9463 | 0,9239 | 0,9800 | 26.11. 23:57 |
 | SOL/USD | ruecksetzer_4h (Lern) | 73,38 | 70,90 | 77,94 | 27.11. 10:06 |
 
 ## Trades
 ```
-GESAMT: 1 Trades · Treffer 0% · Schnitt -1.23R · Summe -1.2R · PF 0.00 · -1.64 $
+GESAMT: 2 Trades · Treffer 50% · Schnitt -0.04R · Summe -0.1R · PF 0.94 · -0.20 $
   normal: 0 Trades
-  Lern-Trades: 1 Trades · Treffer 0% · Schnitt -1.23R · Summe -1.2R · PF 0.00 · -1.64 $
+  Lern-Trades: 2 Trades · Treffer 50% · Schnitt -0.04R · Summe -0.1R · PF 0.94 · -0.20 $
   breakout_1h: 1 Trades · Treffer 0% · Schnitt -1.23R · Summe -1.2R · PF 0.00 · -1.64 $
+  umkehr_4h: 1 Trades · Treffer 100% · Schnitt +1.16R · Summe +1.2R · PF inf · +1.44 $
 Schatten-Trades (nicht genommen): 1 fertig, Summe +0.7R
 ```
 

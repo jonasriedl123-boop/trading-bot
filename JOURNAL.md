@@ -3,6 +3,11 @@
 Der Bot schreibt hier jeden Einstieg und jeden fertigen Trade rein. Claude ergaenzt am Sonntag die Analyse.
 
 <!-- NEU -->
+## #3 XRP umkehr_4h (Lern-Trade) | 27.11.2026 11:12 | +1.16R (+1.44 $)
+Einstieg 0,9463 · Stop 0,9239 · Ziel 0,9800 · Ausstieg 0,9770 (Ziel) · MFE 1.58R · MAE -0.29R · KI GELB
+Warum rein: ueberverkauft nein unter Tief nein zurueck ja
+
+
 ## Einstieg SOL ruecksetzer_4h (Lern-Trade, halbes Risiko) | 27.11.2026 10:06
 1.06402 zu 73,38 · Stop 70,90 · Ziel 77,94 · Trend ja Ruecklauf ja RSI nein Ausloeser ja · Markt-Filter AB · RSI 62.8 · ATR 2.67 % · KI keine
 
