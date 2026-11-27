@@ -5,3 +5,4 @@ id,schluessel,symbol,strategie,zeit,kerze_t,einstieg,stop,ziel,zeit_kerzen,warum
 4,CVX|ruecksetzer_tag|2026112505,CVX,ruecksetzer_tag,2026-11-26T21:41:41.992877+00:00,2026-11-25T05:00:00+00:00,210.99,205.157623,222.654754,5,Markt-Filter,offen,,,
 5,GLD|umkehr_tag|2026112505,GLD,umkehr_tag,2026-11-26T21:41:41.992877+00:00,2026-11-25T05:00:00+00:00,327.46,318.995751,340.156374,5,Strategie hat den Backtest nicht bestanden,offen,,,
 6,LINK/USD|breakout_1h|2026112621,LINK/USD,breakout_1h,2026-11-26T22:57:51.877279+00:00,2026-11-26T21:00:00+00:00,9.354,9.224102,9.613796,6,Markt-Filter,Zeit,9.488,2026-11-27T03:00:00+00:00,0.67
+7,LINK/USD|breakout_1h|2026112704,LINK/USD,breakout_1h,2026-11-27T05:09:44.571064+00:00,2026-11-27T04:00:00+00:00,9.639,9.492692,9.931615,6,Markt-Filter,offen,,,
