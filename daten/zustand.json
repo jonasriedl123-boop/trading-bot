@@ -74,11 +74,10 @@
     "DOGE/USD|breakout_1h|2026112713": "2026-11-27T14:55:54.168032+00:00"
   },
   "tag": {
-    "datum": "2026-11-27",
-    "einstiege": 3,
-    "lern": true,
-    "start_equity": 497.84,
-    "lern_n": 3
+    "datum": "2026-11-28",
+    "einstiege": 0,
+    "lern": false,
+    "start_equity": 495.99
   },
   "woche": {
     "kw": "2026-W48",
@@ -684,7 +683,7 @@
     }
   },
   "letzte_preise": {
-    "btc": 59672.644,
+    "btc": 59793.18,
     "spy": 728.35
   },
   "start_trade": "fertig",
