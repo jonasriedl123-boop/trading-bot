@@ -35,7 +35,7 @@
       "einstieg": 72.28,
       "stop": 69.5184441853874,
       "ziel": 76.73511162922522,
-      "menge": 1.032318595,
+      "menge": 1.030269809,
       "zeit": "2026-11-27T19:33:56.110780+00:00",
       "zeit_kerzen": 12,
       "stop_order_id": "4f249c80-e194-4945-8404-12bdf3e82eda",
@@ -48,7 +48,9 @@
       "news": "",
       "punkte": 0.2,
       "info": "Trend ja Ruecklauf ja RSI nein Ausloeser nein",
-      "kerze_t": "2026-11-27T12:00:00+00:00"
+      "kerze_t": "2026-11-27T12:00:00+00:00",
+      "mfe_r": 0.11,
+      "mae_r": -0.36
     }
   },
   "gesehen": {
@@ -682,11 +684,11 @@
     }
   },
   "letzte_preise": {
-    "btc": 59927.009,
+    "btc": 59765.4,
     "spy": 728.35
   },
   "start_trade": "fertig",
-  "abend": "2026-11-26",
+  "abend": "2026-11-27",
   "sperre_wert": {
     "LINK/USD": "2026-11-27T01:56:52.149440+00:00",
     "SOL/USD": "2026-11-27T16:55:54.168032+00:00"
