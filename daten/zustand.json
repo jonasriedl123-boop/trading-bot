@@ -26,6 +26,29 @@
       "kerze_t": "2026-11-25T05:00:00+00:00",
       "mfe_r": 0.06,
       "mae_r": 0.0
+    },
+    "SOL/USD": {
+      "symbol": "SOL/USD",
+      "strategie": "ruecksetzer_4h",
+      "lern": true,
+      "art": "4h",
+      "einstieg": 72.28,
+      "stop": 69.5184441853874,
+      "ziel": 76.73511162922522,
+      "menge": 1.032318595,
+      "zeit": "2026-11-27T19:33:56.110780+00:00",
+      "zeit_kerzen": 12,
+      "stop_order_id": "4f249c80-e194-4945-8404-12bdf3e82eda",
+      "bracket": false,
+      "bruchteil": false,
+      "trend": "AB",
+      "rsi": 55.6,
+      "atr_pct": 2.79,
+      "ki": "keine",
+      "news": "",
+      "punkte": 0.2,
+      "info": "Trend ja Ruecklauf ja RSI nein Ausloeser nein",
+      "kerze_t": "2026-11-27T12:00:00+00:00"
     }
   },
   "gesehen": {
@@ -50,10 +73,10 @@
   },
   "tag": {
     "datum": "2026-11-27",
-    "einstiege": 2,
+    "einstiege": 3,
     "lern": true,
     "start_equity": 497.84,
-    "lern_n": 2
+    "lern_n": 3
   },
   "woche": {
     "kw": "2026-W48",
@@ -659,7 +682,7 @@
     }
   },
   "letzte_preise": {
-    "btc": 59787.0,
+    "btc": 59927.009,
     "spy": 728.35
   },
   "start_trade": "fertig",
