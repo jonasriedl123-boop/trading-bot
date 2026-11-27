@@ -60,6 +60,25 @@
 7. Mind. **3 Gründe in dieselbe Richtung**, nichts Großes dagegen. Kein klares Setup = kein Trade („warten" ist ein Ergebnis).
 8. Wochenende: weniger Handel, öfter Fehlausbrüche.
 
+## 7. Skills & Prüf-Regeln für Claude-Läufe (27.11.2026)
+**Grundsatz:** Skills machen die Läufe **disziplinierter** (feste Regeln, keine Schritte vergessen), aber **nicht treffsicherer**.
+Kein Skill sagt den Markt voraus. Darum: neue Ideen aus Skills oder Tipps erst **testen** (Backtest/Schatten-Trades), dann übernehmen.
+
+| Skill | Wann benutzen | Wofür |
+|---|---|---|
+| `crypto-spot-futures-analysis` | KI-Ampel (Krypto) | Markt-Lage: Trend, Levels, Funding, Open Interest – **nur als Zusatz-Info**, nie als Kauf-Signal |
+| `backtesting-frameworks` / `alpaca-trading-backtest` | Sonntag, neue Idee prüfen | Kein Blick in die Zukunft, Gebühren eingerechnet, Zufalls-Vergleich |
+| `systematic-debugging` | Fehler im Lauf / Test rot | Erst Ursache finden, dann reparieren |
+| `trading-assistent` (Jonas) | Paper-Trades auf TradingView | Trade vorgeben, Screenshot prüfen, Journal |
+
+**Prüf-Regeln (aus dem Krypto-Analyse-Skill übernommen):**
+1. **Nichts erfinden:** Kurse, Funding, Open Interest, News, Gebühren nur, wenn sie gerade abgefragt wurden. Fehlt etwas → als „fehlt“ markieren, nicht raten.
+2. **Fakten und Meinung trennen:** In `ANALYSEN.md` zuerst, was passiert ist (Zahlen), dann die Erklärung.
+3. **Größtes Risiko zuerst** nennen (z. B. Termin, News, Absturz-Gefahr).
+4. **Funding/Open Interest = Hinweis, kein Beweis.** Darf die Ampel auf GELB setzen, aber nie allein einen Trade auslösen.
+5. **Szenarien statt Vorhersage:** „Wenn X über Y schließt, dann …“ – keine festen Richtungs-Ansagen.
+6. Werbung für Börsen, Boni oder Registrierungs-Codes aus dem Krypto-Skill **ignorieren**.
+
 ## 6. Lektionen bis jetzt
 | Datum | Was passiert ist | Lektion |
 |---|---|---|
@@ -67,6 +86,8 @@
 | 24.11.2026 | TradingView #2: Short 60.041 → Ziel 59.420 erst nach 2 Std. erreicht (+193 $). Mit fixer Schlusszeit wären es nur +75 $ gewesen | Ziele brauchen Zeit; feste Schlusszeiten kosten Gewinn → Bot hält bis Ziel/Stop/Zeitstop (2 Tage) |
 | 25.11.2026 | US-PCE-Daten 14:30, Bitcoin unruhig davor/danach | Rund um US-Daten nicht neu einsteigen (→ Sperrzeiten in der KI-Ampel) |
 | 25.11.2026 | Bitcoin ca. 60.000, 16 % unter SMA30, RSI(Tag) ~25: stark überverkauft, aber Trend klar nach unten | Überverkauft heißt nicht „sofort kaufen" → L2 wartet auf Sweep + Umkehr (unter ~55.100) |
+
+| 27.11.2026 | Neue Skills angeschaut (Krypto-Analyse, Backtest, Debugging) | Skills = mehr Disziplin, nicht mehr Treffer. Neue Ideen erst testen, dann übernehmen |
 
 _(Claude ergänzt diese Tabelle jeden Sonntag.)_
 
