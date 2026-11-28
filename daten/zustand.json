@@ -49,8 +49,8 @@
       "punkte": 0.2,
       "info": "Trend ja Ruecklauf ja RSI nein Ausloeser nein",
       "kerze_t": "2026-11-27T12:00:00+00:00",
-      "mfe_r": 0.11,
-      "mae_r": -0.36
+      "mfe_r": 0.47,
+      "mae_r": -0.39
     }
   },
   "gesehen": {
@@ -90,10 +90,190 @@
     "spy": 716.67
   },
   "assets": {
-    "_datum": "2026-11-27",
-    "GRT/USDC": {
+    "_datum": "2026-11-28",
+    "SHIB/USDT": {
       "ok": true,
-      "min_qty": 60.606060606,
+      "min_qty": 86880.973066898,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "BCH/USD": {
+      "ok": true,
+      "min_qty": 0.004725897,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "LTC/USDC": {
+      "ok": true,
+      "min_qty": 0.020605386,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "AAVE/USDT": {
+      "ok": true,
+      "min_qty": 0.00761035,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "CRV/USDC": {
+      "ok": true,
+      "min_qty": 2.737363645,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "SHIB/USD": {
+      "ok": true,
+      "min_qty": 273972.602739726,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "ADA/USD": {
+      "ok": true,
+      "min_qty": 6.625280746,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "POL/USD": {
+      "ok": true,
+      "min_qty": 13.099292638,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "SOL/USDC": {
+      "ok": true,
+      "min_qty": 0.008968609,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "YFI/USD": {
+      "ok": true,
+      "min_qty": 0.000621902,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "DOGE/USD": {
+      "ok": true,
+      "min_qty": 17.73231999,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "USDT/USD": {
+      "ok": true,
+      "min_qty": 1.001702894,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "LINK/USD": {
+      "ok": true,
+      "min_qty": 0.106935745,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "AVAX/USD": {
+      "ok": true,
+      "min_qty": 0.148809523,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "ETH/USDT": {
+      "ok": true,
+      "min_qty": 0.000541673,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "ETH/USD": {
+      "ok": true,
+      "min_qty": 0.00057866,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "XTZ/USD": {
+      "ok": true,
+      "min_qty": 4.801690194,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "DOT/USDC": {
+      "ok": true,
+      "min_qty": 1.188354129,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "PEPE/USD": {
+      "ok": true,
+      "min_qty": 284090.909090909,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "SUSHI/USD": {
+      "ok": true,
+      "min_qty": 6.847673502,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "FIL/USD": {
+      "ok": true,
+      "min_qty": 1.818413252,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "BCH/USDT": {
+      "ok": true,
+      "min_qty": 0.003811411,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "BTC/USD": {
+      "ok": true,
+      "min_qty": 1.6322e-05,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "BTC/USDC": {
+      "ok": true,
+      "min_qty": 1.6944e-05,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "SHIB/USDC": {
+      "ok": true,
+      "min_qty": 200883.889112093,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "AAVE/USD": {
+      "ok": true,
+      "min_qty": 0.010366991,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "BCH/BTC": {
+      "ok": true,
+      "min_qty": 235.21663452,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "LDO/USD": {
+      "ok": true,
+      "min_qty": 4.212122488,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "UNI/BTC": {
+      "ok": true,
+      "min_qty": 8820.675663755,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "USDC/USD": {
+      "ok": true,
+      "min_qty": 1.00050025,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "UNI/USDC": {
+      "ok": true,
+      "min_qty": 0.167254846,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
@@ -103,21 +283,99 @@
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
+    "XRP/USD": {
+      "ok": true,
+      "min_qty": 1.043514557,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "UNI/USD": {
+      "ok": true,
+      "min_qty": 0.206172388,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "UNI/USDT": {
+      "ok": true,
+      "min_qty": 0.145866153,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "GRT/USDC": {
+      "ok": true,
+      "min_qty": 60.606060606,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "ONDO/USD": {
+      "ok": true,
+      "min_qty": 3.459848458,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "USDG/USD": {
+      "ok": true,
+      "min_qty": 1.00001,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "USDT/USDC": {
+      "ok": true,
+      "min_qty": 1.002967781,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "HYPE/USD": {
+      "ok": true,
+      "min_qty": 0.016479894,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "LINK/USDC": {
+      "ok": true,
+      "min_qty": 0.101820447,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "CRV/USD": {
+      "ok": true,
+      "min_qty": 5.592215635,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "PAXG/USD": {
+      "ok": true,
+      "min_qty": 0.000275385,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "TRUMP/USD": {
+      "ok": true,
+      "min_qty": 1.132246376,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "DOGE/USDC": {
+      "ok": true,
+      "min_qty": 12.421789309,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
     "AVAX/USDT": {
       "ok": true,
       "min_qty": 0.040273862,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
-    "SUSHI/USDC": {
+    "YFI/USDC": {
       "ok": true,
-      "min_qty": 4.948045522,
+      "min_qty": 0.00045451,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
-    "FIL/USD": {
+    "XTZ/USDC": {
       "ok": true,
-      "min_qty": 1.986491855,
+      "min_qty": 4.08830744,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
@@ -127,9 +385,75 @@
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
+    "SUSHI/USDT": {
+      "ok": true,
+      "min_qty": 4.205886558,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "SOL/USDT": {
+      "ok": true,
+      "min_qty": 0.01118318,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "LINK/BTC": {
+      "ok": true,
+      "min_qty": 6668.00026672,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "LTC/USD": {
+      "ok": true,
+      "min_qty": 0.022629554,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "LTC/BTC": {
+      "ok": true,
+      "min_qty": 1408.807866783,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "ETH/USDC": {
+      "ok": true,
+      "min_qty": 0.000510021,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "BAT/USD": {
+      "ok": true,
+      "min_qty": 12.495595302,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "SOL/USD": {
+      "ok": true,
+      "min_qty": 0.013829881,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
     "ARB/USD": {
       "ok": true,
       "min_qty": 9.181050312,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "BTC/USDT": {
+      "ok": true,
+      "min_qty": 1.6423e-05,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "YFI/USDT": {
+      "ok": true,
+      "min_qty": 0.000377833,
+      "schritt": 1e-09,
+      "preis_schritt": 1e-09
+    },
+    "SUSHI/USDC": {
+      "ok": true,
+      "min_qty": 4.948045522,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
@@ -141,13 +465,13 @@
     },
     "WIF/USD": {
       "ok": true,
-      "min_qty": 8.434868057,
+      "min_qty": 7.441029838,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
     "DOT/USD": {
       "ok": true,
-      "min_qty": 1.509288159,
+      "min_qty": 1.461582309,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
@@ -165,7 +489,7 @@
     },
     "RENDER/USD": {
       "ok": true,
-      "min_qty": 0.764748168,
+      "min_qty": 0.749007564,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
@@ -183,7 +507,7 @@
     },
     "SKY/USD": {
       "ok": true,
-      "min_qty": 23.317632793,
+      "min_qty": 21.779374931,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
@@ -201,331 +525,7 @@
     },
     "BONK/USD": {
       "ok": true,
-      "min_qty": 469483.568075117,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "TRUMP/USD": {
-      "ok": true,
-      "min_qty": 1.164415463,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "SHIB/USDC": {
-      "ok": true,
-      "min_qty": 200883.889112093,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "ETH/USD": {
-      "ok": true,
-      "min_qty": 0.00058754,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "USDT/USDC": {
-      "ok": true,
-      "min_qty": 1.002967781,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "USDG/USD": {
-      "ok": true,
-      "min_qty": 1.00001,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "LDO/USD": {
-      "ok": true,
-      "min_qty": 4.203641194,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "BTC/USDT": {
-      "ok": true,
-      "min_qty": 1.5804e-05,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "UNI/BTC": {
-      "ok": true,
-      "min_qty": 8820.675663755,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "BCH/BTC": {
-      "ok": true,
-      "min_qty": 235.21663452,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "AAVE/USD": {
-      "ok": true,
-      "min_qty": 0.010362694,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "ONDO/USD": {
-      "ok": true,
-      "min_qty": 3.468609087,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "XRP/USD": {
-      "ok": true,
-      "min_qty": 1.046011974,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "SUSHI/USDT": {
-      "ok": true,
-      "min_qty": 4.205886558,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "SHIB/USD": {
-      "ok": true,
-      "min_qty": 279329.608938547,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "DOT/USDC": {
-      "ok": true,
-      "min_qty": 1.188354129,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "UNI/USDC": {
-      "ok": true,
-      "min_qty": 0.167254846,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "BTC/USD": {
-      "ok": true,
-      "min_qty": 1.6496e-05,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "SUSHI/USD": {
-      "ok": true,
-      "min_qty": 6.847673502,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "ADA/USD": {
-      "ok": true,
-      "min_qty": 6.741906341,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "BCH/USD": {
-      "ok": true,
-      "min_qty": 0.004847004,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "PAXG/USD": {
-      "ok": true,
-      "min_qty": 0.000277862,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "USDT/USD": {
-      "ok": true,
-      "min_qty": 1.001893578,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "BCH/USDT": {
-      "ok": true,
-      "min_qty": 0.003811411,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "XTZ/USD": {
-      "ok": true,
-      "min_qty": 4.801690194,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "YFI/USDC": {
-      "ok": true,
-      "min_qty": 0.00045451,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "LTC/BTC": {
-      "ok": true,
-      "min_qty": 1408.807866783,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "AAVE/USDT": {
-      "ok": true,
-      "min_qty": 0.00761035,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "BTC/USDC": {
-      "ok": true,
-      "min_qty": 1.6944e-05,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "USDC/USD": {
-      "ok": true,
-      "min_qty": 1.00050025,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "BAT/USD": {
-      "ok": true,
-      "min_qty": 12.369195754,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "AVAX/USD": {
-      "ok": true,
-      "min_qty": 0.150763617,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "LINK/BTC": {
-      "ok": true,
-      "min_qty": 6668.00026672,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "ETH/USDT": {
-      "ok": true,
-      "min_qty": 0.000541673,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "ETH/USDC": {
-      "ok": true,
-      "min_qty": 0.000510021,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "DOGE/USD": {
-      "ok": true,
-      "min_qty": 17.624250969,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "CRV/USDC": {
-      "ok": true,
-      "min_qty": 2.737363645,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "CRV/USD": {
-      "ok": true,
-      "min_qty": 5.747060378,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "SOL/USDC": {
-      "ok": true,
-      "min_qty": 0.008968609,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "SOL/USD": {
-      "ok": true,
-      "min_qty": 0.014073208,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "SHIB/USDT": {
-      "ok": true,
-      "min_qty": 86880.973066898,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "POL/USD": {
-      "ok": true,
-      "min_qty": 13.099292638,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "PEPE/USD": {
-      "ok": true,
-      "min_qty": 288184.438040345,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "LTC/USDC": {
-      "ok": true,
-      "min_qty": 0.020605386,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "LTC/USD": {
-      "ok": true,
-      "min_qty": 0.023199164,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "LINK/USD": {
-      "ok": true,
-      "min_qty": 0.108835245,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "YFI/USDT": {
-      "ok": true,
-      "min_qty": 0.000377833,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "YFI/USD": {
-      "ok": true,
-      "min_qty": 0.000621902,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "XTZ/USDC": {
-      "ok": true,
-      "min_qty": 4.08830744,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "UNI/USDT": {
-      "ok": true,
-      "min_qty": 0.145866153,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "UNI/USD": {
-      "ok": true,
-      "min_qty": 0.208327257,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "SOL/USDT": {
-      "ok": true,
-      "min_qty": 0.01118318,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "DOGE/USDC": {
-      "ok": true,
-      "min_qty": 12.421789309,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "HYPE/USD": {
-      "ok": true,
-      "min_qty": 0.016559032,
-      "schritt": 1e-09,
-      "preis_schritt": 1e-09
-    },
-    "LINK/USDC": {
-      "ok": true,
-      "min_qty": 0.101820447,
+      "min_qty": 454545.454545454,
       "schritt": 1e-09,
       "preis_schritt": 1e-09
     },
@@ -683,7 +683,7 @@
     }
   },
   "letzte_preise": {
-    "btc": 59793.18,
+    "btc": 59946.95,
     "spy": 728.35
   },
   "start_trade": "fertig",
