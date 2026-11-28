@@ -33,3 +33,4 @@ zeit_wien,aktion,text
 2026-11-27 20:33,KAUF,"SOL/USD ruecksetzer_4h (Lern-Trade, halbes Risiko): 1.03232 zu 72,28, Stop 69,52, Ziel 76,74, Punkte 0.2, KI keine"
 2026-11-28 06:58,NICHT,"Markt-Filter: 6 Signale -> Schatten (AAPL breakout_tag, WMT breakout_tag, HD breakout_tag, AMZN ruecksetzer_tag, XOM ruecksetzer_tag, META ruecksetzer_tag)"
 2026-11-28 06:58,NICHT,"Strategie hat den Backtest nicht bestanden: 1 Signale -> Schatten (GLD umkehr_tag)"
+2026-11-28 10:24,KAUF,"LINK/USD ruecksetzer_4h (Lern-Trade, halbes Risiko): 8.83362 zu 9,17, Stop 8,88, Ziel 9,72, Punkte 0.176, KI keine"

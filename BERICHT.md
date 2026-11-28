@@ -1,12 +1,12 @@
 # Bericht – Trading-Bot v3
 
-Stand: **28.11.2026 09:30** Wien · Paper-Konto · automatisch geschrieben
+Stand: **28.11.2026 10:24** Wien · Paper-Konto · automatisch geschrieben
 
 | | Wert |
 |---|---|
-| Konto | **495,19 $** (-0.9% seit Start 26.11.2026) |
+| Konto | **494,88 $** (-1.0% seit Start 26.11.2026) |
 | Ziel (+50 % in 1 Monat, sehr hoch) | 749,85 $ |
-| Bitcoin halten | -2.0% |
+| Bitcoin halten | -2.1% |
 | S&P 500 (SPY) halten | +1.6% |
 | Markt-Filter | Bitcoin über 200-Tage-Schnitt: False · SPY: False |
 | KI-Ampel | keine gültige |
@@ -18,6 +18,7 @@ Stand: **28.11.2026 09:30** Wien · Paper-Konto · automatisch geschrieben
 |---|---|---|---|---|---|
 | PG | breakout_tag (Lern) | 172,63 | 167,82 | 182,07 | 27.11. 15:55 |
 | SOL/USD | ruecksetzer_4h (Lern) | 72,28 | 69,52 | 76,74 | 27.11. 20:33 |
+| LINK/USD | ruecksetzer_4h (Lern) | 9,17 | 8,88 | 9,72 | 28.11. 10:24 |
 
 ## Trades
 ```

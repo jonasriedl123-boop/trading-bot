@@ -3,6 +3,10 @@
 Der Bot schreibt hier jeden Einstieg und jeden fertigen Trade rein. Claude ergaenzt am Sonntag die Analyse.
 
 <!-- NEU -->
+## Einstieg LINK ruecksetzer_4h (Lern-Trade, halbes Risiko) | 28.11.2026 10:24
+8.83362 zu 9,17 · Stop 8,88 · Ziel 9,72 · Trend ja Ruecklauf ja RSI nein Ausloeser nein · Markt-Filter AB · RSI 51.0 · ATR 2.55 % · KI keine
+
+
 ## Einstieg SOL ruecksetzer_4h (Lern-Trade, halbes Risiko) | 27.11.2026 20:33
 1.03232 zu 72,28 · Stop 69,52 · Ziel 76,74 · Trend ja Ruecklauf ja RSI nein Ausloeser nein · Markt-Filter AB · RSI 55.6 · ATR 2.79 % · KI keine
 
