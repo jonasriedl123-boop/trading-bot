@@ -1,12 +1,12 @@
 # Bericht – Trading-Bot v3
 
-Stand: **28.11.2026 05:59** Wien · Paper-Konto · automatisch geschrieben
+Stand: **28.11.2026 06:58** Wien · Paper-Konto · automatisch geschrieben
 
 | | Wert |
 |---|---|
-| Konto | **495,69 $** (-0.8% seit Start 26.11.2026) |
+| Konto | **495,43 $** (-0.9% seit Start 26.11.2026) |
 | Ziel (+50 % in 1 Monat, sehr hoch) | 749,85 $ |
-| Bitcoin halten | -1.4% |
+| Bitcoin halten | -1.9% |
 | S&P 500 (SPY) halten | +1.6% |
 | Markt-Filter | Bitcoin über 200-Tage-Schnitt: False · SPY: False |
 | KI-Ampel | keine gültige |
@@ -34,15 +34,15 @@ Schatten-Trades (nicht genommen): 12 fertig, Summe -7.5R
 
 | Wert | Strategie | Signal | Punkte | Info |
 |---|---|---|---|---|
-| PG | breakout_tag | JA | 0.85 | Schluss 173.23 vs 55-Tage-Hoch 173.02, SMA200 150.46 |
-| AAPL | breakout_tag | nein | 0.85 | Schluss 355.58 vs 55-Tage-Hoch 356.27, SMA200 304.40 |
-| HD | breakout_tag | JA | 0.83 | Schluss 361.26 vs 55-Tage-Hoch 355.44, SMA200 331.20 |
-| WMT | breakout_tag | nein | 0.76 | Schluss 131.94 vs 55-Tage-Hoch 132.31, SMA200 119.03 |
-| MA | ruecksetzer_tag | nein | 0.76 | Trend ja Ruecklauf ja RSI nein Ausloeser ja |
-| CVX | ruecksetzer_tag | JA | 0.76 | Trend ja Ruecklauf ja RSI ja Ausloeser ja |
-| GLD | umkehr_tag | JA | 0.75 | ueberverkauft ja unter Tief ja zurueck ja |
-| V | ruecksetzer_tag | nein | 0.74 | Trend ja Ruecklauf ja RSI nein Ausloeser ja |
-| AAPL | ruecksetzer_tag | nein | 0.72 | Trend ja Ruecklauf ja RSI nein Ausloeser ja |
-| MCD | breakout_tag | JA | 0.72 | Schluss 283.50 vs 55-Tage-Hoch 282.17, SMA200 279.60 |
+| AAPL | breakout_tag | JA | 0.82 | Schluss 358.54 vs 55-Tage-Hoch 356.27, SMA200 304.82 |
+| WMT | breakout_tag | JA | 0.76 | Schluss 133.13 vs 55-Tage-Hoch 132.31, SMA200 119.05 |
+| PG | breakout_tag | nein | 0.76 | Schluss 172.86 vs 55-Tage-Hoch 173.23, SMA200 150.52 |
+| HD | breakout_tag | JA | 0.75 | Schluss 362.15 vs 55-Tage-Hoch 361.26, SMA200 331.06 |
+| MA | breakout_tag | nein | 0.73 | Schluss 666.96 vs 55-Tage-Hoch 672.68, SMA200 546.55 |
+| MA | ruecksetzer_tag | nein | 0.70 | Trend ja Ruecklauf ja RSI nein Ausloeser ja |
+| V | ruecksetzer_tag | nein | 0.70 | Trend ja Ruecklauf ja RSI nein Ausloeser ja |
+| AMZN | ruecksetzer_tag | JA | 0.68 | Trend ja Ruecklauf ja RSI ja Ausloeser ja |
+| XOM | ruecksetzer_tag | JA | 0.68 | Trend ja Ruecklauf ja RSI ja Ausloeser ja |
+| AAPL | ruecksetzer_tag | nein | 0.67 | Trend ja Ruecklauf ja RSI nein Ausloeser ja |
 
 _Ehrlich: Ein Urteil gibt es erst nach ca. 30 Trades. +50 % im Monat schaffen auch gute Bots praktisch nie – das Risiko wird dafür nicht erhöht._
