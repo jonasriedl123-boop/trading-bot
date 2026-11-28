@@ -1,12 +1,12 @@
 # Bericht – Trading-Bot v3
 
-Stand: **28.11.2026 08:11** Wien · Paper-Konto · automatisch geschrieben
+Stand: **28.11.2026 09:30** Wien · Paper-Konto · automatisch geschrieben
 
 | | Wert |
 |---|---|
-| Konto | **495,54 $** (-0.9% seit Start 26.11.2026) |
+| Konto | **495,19 $** (-0.9% seit Start 26.11.2026) |
 | Ziel (+50 % in 1 Monat, sehr hoch) | 749,85 $ |
-| Bitcoin halten | -2.5% |
+| Bitcoin halten | -2.0% |
 | S&P 500 (SPY) halten | +1.6% |
 | Markt-Filter | Bitcoin über 200-Tage-Schnitt: False · SPY: False |
 | KI-Ampel | keine gültige |
